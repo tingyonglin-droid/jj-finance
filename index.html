@@ -1287,11 +1287,13 @@ function renderHoldings() {
   const { exr } = getCash();
   const roleTag = {'CLEC槓桿':'hold','配息核心':'us','成長':'us','持有-等回升':'hold','持有-等前高':'hold','持有':'hold','比特幣ETF':'crypto'};
 
-  // getVal：台股用台幣，其他（美股/加密）用美元×匯率
-  const isTWD = p => p.type === 'tw';
-  const getVal = p => prices[p.sym]
-    ? (isTWD(p) ? p.shares * prices[p.sym] : p.shares * prices[p.sym] * exr)
-    : (JSON_VALS[p.sym] || 0);
+  // getVal：台股 = 台幣不需換算，美股/加密 = 美元需乘匯率
+  const getVal = p => {
+    const price = prices[p.sym];
+    if (!price) return JSON_VALS[p.sym] || 0;
+    if (p.type === 'tw') return p.shares * price;          // 台幣
+    return p.shares * price * exr;                          // 美元（us/crypto）
+  };
   const getGain = p => prices[p.sym] && p.cost ? (prices[p.sym] - p.cost) / p.cost * 100 : -999;
 
   // 分類
