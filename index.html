@@ -1293,9 +1293,10 @@ function renderHoldings() {
   const getGain = p => prices[p.sym] && p.cost ? (prices[p.sym] - p.cost) / p.cost * 100 : -999;
 
   // 分類
-  const usPos     = POSITIONS.filter(p => p.type === 'us' && p.tag !== 'crypto');
-  const twPos     = POSITIONS.filter(p => p.type === 'tw');
-  const cryptoPos = POSITIONS.filter(p => p.type === 'crypto' || p.tag === 'crypto');
+  // 分類依 tag 判斷（從 Sheets 載入後 type 可能不一致，tag 由 inferTag 保證正確）
+  const cryptoPos = POSITIONS.filter(p => p.tag === 'crypto' || p.type === 'crypto' || p.role === '比特幣ETF');
+  const twPos     = POSITIONS.filter(p => p.type === 'tw' && p.tag !== 'crypto');
+  const usPos     = POSITIONS.filter(p => !cryptoPos.includes(p) && !twPos.includes(p));
 
   // 各群組總市值
   const usTotal     = usPos.reduce((s,p)=>s+getVal(p),0);
@@ -1582,8 +1583,11 @@ async function savePositions() {
 function loadPositionsFromSheets(savedPositions) {
   if (!savedPositions || !savedPositions.length) return;
   POSITIONS = savedPositions.map(p => {
-    const inf = inferTag(p.type, p.role);
-    return { ...p, tag: inf.tag, tagLabel: inf.tagLabel };
+    // 修正比特幣ETF的type
+    let type = p.type;
+    if (p.role === '比特幣ETF') type = 'crypto';
+    const inf = inferTag(type, p.role);
+    return { ...p, type, tag: inf.tag, tagLabel: inf.tagLabel };
   });
 }
 
