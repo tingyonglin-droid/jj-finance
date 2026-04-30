@@ -751,7 +751,7 @@ let POSITIONS = [
   {sym:'ITA',  shares:58,    cost:216.04,  type:'us', role:'持有',       tag:'us',  tagLabel:'美'},
   {sym:'XLU',  shares:215,   cost:46.19,   type:'us', role:'持有',       tag:'us',  tagLabel:'美'},
   {sym:'UFO',  shares:195,   cost:50.64,   type:'us', role:'持有',       tag:'us',  tagLabel:'美'},
-  {sym:'IBIT', shares:116,   cost:39.78,   type:'us', role:'比特幣ETF',  tag:'crypto', tagLabel:'加密'},
+  {sym:'IBIT', shares:116,   cost:39.78,   type:'crypto', role:'比特幣ETF',  tag:'crypto', tagLabel:'加密'},
   // 台股
   {sym:'00685L',shares:29000,  cost:165.24, type:'tw', role:'CLEC槓桿', tag:'lev', tagLabel:'2x台'},
   {sym:'00631L',shares:185000, cost:24.05,  type:'tw', role:'CLEC槓桿', tag:'lev', tagLabel:'2x台'},
@@ -1295,7 +1295,7 @@ function renderHoldings() {
   // 分類
   const usPos     = POSITIONS.filter(p => p.type === 'us' && p.tag !== 'crypto');
   const twPos     = POSITIONS.filter(p => p.type === 'tw');
-  const cryptoPos = POSITIONS.filter(p => p.tag === 'crypto');
+  const cryptoPos = POSITIONS.filter(p => p.type === 'crypto' || p.tag === 'crypto');
 
   // 各群組總市值
   const usTotal     = usPos.reduce((s,p)=>s+getVal(p),0);
@@ -1443,7 +1443,7 @@ function updatePie(investTWD, cashTWD) {
   // 4 類別：現金 / 台股 / 美股 / 加密
   const twVal     = POSITIONS.filter(p=>p.type==='tw').reduce((s,p)=>s+(prices[p.sym]?p.shares*prices[p.sym]:(JSON_VALS[p.sym]||0)),0);
   const usVal     = POSITIONS.filter(p=>p.type==='us'&&p.tag!=='crypto').reduce((s,p)=>s+(prices[p.sym]?p.shares*prices[p.sym]*exr:(JSON_VALS[p.sym]||0)),0);
-  const cryptoVal = POSITIONS.filter(p=>p.tag==='crypto').reduce((s,p)=>s+(prices[p.sym]?p.shares*prices[p.sym]*exr:(JSON_VALS[p.sym]||0)),0);
+  const cryptoVal = POSITIONS.filter(p=>p.type==='crypto'||p.tag==='crypto').reduce((s,p)=>s+(prices[p.sym]?p.shares*prices[p.sym]*exr:(JSON_VALS[p.sym]||0)),0);
   // cashTWD 就是 getCash().total（含台幣三帳戶 + 美股現金換算）
 
   const total = cashTWD + twVal + usVal + cryptoVal;
@@ -1472,9 +1472,13 @@ const TYPE_OPTIONS = ['us','tw','crypto'];
 // tag/tagLabel 自動推算
 function inferTag(type, role) {
   if (type === 'crypto') return { tag:'crypto', tagLabel:'加密' };
-  if (type === 'tw') return { tag:'lev', tagLabel:'2x台' }; // 預設，可能是槓桿
+  if (role === '比特幣ETF') return { tag:'crypto', tagLabel:'加密' }; // 防呆
+  if (type === 'tw') {
+    if (role === 'CLEC槓桿') return { tag:'lev', tagLabel:'2x台' };
+    return { tag:'tw', tagLabel:'台' }; // 台股現股
+  }
   // us
-  if (role === 'CLEC槓桿') return { tag:'lev', tagLabel:'2x' };
+  if (role === 'CLEC槓桿')    return { tag:'lev', tagLabel:'2x' };
   if (role === '持有-等回升') return { tag:'lev', tagLabel:'3x金' };
   if (role === '持有-等前高') return { tag:'lev', tagLabel:'2x' };
   return { tag:'us', tagLabel:'美' };
