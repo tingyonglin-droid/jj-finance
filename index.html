@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JJ財務規劃系統</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;600;700&family=DM+Mono:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold:#C9A96E;--gold-dark:#8B6914;--gold-light:#F5ECD8;
+    --ink:#0F0E0C;--paper:#F7F3EE;--paper-dark:#EDE8E1;
+    --charcoal:#2C2A26;--muted:#6B6355;
+    --red:#C0392B;--green:#27AE60;--blue:#2473B5;--orange:#D4580A;
+    --border:rgba(201,169,110,0.22);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Noto Serif TC',serif;background:var(--paper);color:var(--ink);}
+
+  .header{padding:24px 40px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;position:relative;}
+  .header::after{content:'';position:absolute;bottom:-2px;left:40px;right:40px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+  .header h1{font-family:'Playfair Display',serif;font-size:1.65rem;font-weight:700;color:var(--charcoal);}
+  .header h1 em{font-style:italic;color:var(--gold-dark);}
+  .header-sub{font-family:'DM Mono',monospace;font-size:0.63rem;color:var(--muted);margin-top:3px;}
+  .badge{background:var(--gold);color:white;font-family:'DM Mono',monospace;font-size:0.63rem;padding:5px 12px;border-radius:2px;text-transform:uppercase;letter-spacing:0.08em;}
+  .update-btn{display:flex;align-items:center;gap:7px;background:var(--charcoal);color:white;border:none;padding:8px 16px;border-radius:3px;font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.06em;cursor:pointer;transition:background .2s;}
+  .update-btn:hover{background:#3a3836;}
+  .update-btn:disabled{background:#aaa;cursor:not-allowed;}
+  .spin{display:inline-block;animation:spin 1s linear infinite;}
+  @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+  /* CONTROL BAR */
+  .ctrl-bar{background:white;border-bottom:2px solid var(--border);padding:0 40px;display:flex;align-items:stretch;flex-wrap:wrap;}
+  .ctrl-section{display:flex;align-items:center;gap:10px;padding:10px 20px 10px 0;border-right:1px solid var(--border);margin-right:20px;}
+  .ctrl-section:last-child{border-right:none;margin-right:0;margin-left:auto;}
+  .ctrl-label{font-family:'DM Mono',monospace;font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
+  .cash-field{display:flex;align-items:center;gap:5px;}
+  .cash-field label{font-family:'DM Mono',monospace;font-size:0.64rem;color:var(--charcoal);white-space:nowrap;min-width:72px;}
+  .cash-input{width:110px;border:1px solid var(--border);border-radius:2px;padding:5px 8px;font-family:'DM Mono',monospace;font-size:0.69rem;color:var(--charcoal);background:var(--paper);text-align:right;transition:border-color .15s;}
+  .cash-input:focus{outline:none;border-color:var(--gold);background:white;box-shadow:0 0 0 2px rgba(201,169,110,0.12);}
+  .exr-input{width:68px;border:1px solid var(--border);border-radius:2px;padding:5px 8px;font-family:'DM Mono',monospace;font-size:0.69rem;color:var(--charcoal);background:var(--paper);text-align:center;}
+  .exr-input:focus{outline:none;border-color:var(--gold);background:white;}
+  .cash-total-badge{font-family:'DM Mono',monospace;font-size:0.69rem;background:var(--gold-light);color:var(--gold-dark);padding:5px 12px;border-radius:2px;border:1px solid rgba(201,169,110,0.3);white-space:nowrap;}
+
+  .status-bar{background:var(--paper-dark);padding:7px 40px;font-family:'DM Mono',monospace;font-size:0.64rem;display:flex;align-items:center;gap:10px;min-height:32px;}
+  .sdot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex-shrink:0;}
+  .sdot.ok{background:var(--green);}
+  .sdot.loading{background:var(--orange);animation:pulse 1s ease-in-out infinite;}
+  .sdot.err{background:var(--red);}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+  .tabs{display:flex;padding:0 40px;border-bottom:1px solid var(--border);background:white;overflow-x:auto;}
+  .tab{padding:12px 18px;font-family:'DM Mono',monospace;font-size:0.66rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;}
+  .tab.active{color:var(--gold-dark);border-bottom-color:var(--gold);}
+  .tab:hover:not(.active){color:var(--charcoal);}
+
+  .page{display:none;padding:22px 40px;}
+  .page.active{display:block;}
+
+  .grid{display:grid;gap:16px;}
+  .g3{grid-template-columns:1fr 1fr 1fr;}
+  .g2{grid-template-columns:1fr 1fr;}
+  .g21{grid-template-columns:2fr 1fr;}
+  .g12{grid-template-columns:1fr 2fr;}
+  .span2{grid-column:span 2;}
+  .span3{grid-column:span 3;}
+
+  .card{background:white;border:1px solid var(--border);border-radius:4px;padding:20px;position:relative;}
+  .card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--gold-dark));border-radius:4px 4px 0 0;}
+  .card.ag::before{background:linear-gradient(90deg,#27AE60,#1a8a45);}
+  .card.ab::before{background:linear-gradient(90deg,#2473B5,#1a5a8f);}
+
+  .clabel{font-family:'DM Mono',monospace;font-size:0.59rem;letter-spacing:0.13em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+  .clabel::after{content:'';flex:1;height:1px;background:var(--border);}
+
+  .bignum{font-family:'Playfair Display',serif;font-size:1.85rem;font-weight:700;line-height:1;}
+  .gold{color:var(--gold-dark);}.green{color:var(--green);}.red{color:var(--red);}.blue{color:var(--blue);}
+  .sublabel{font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);margin-top:5px;line-height:1.5;}
+
+  .statrow{display:grid;gap:8px;margin-top:14px;}
+  .stat{background:var(--paper-dark);border-radius:3px;padding:11px 10px;text-align:center;}
+  .stat .val{font-family:'DM Mono',monospace;font-size:0.87rem;font-weight:500;margin-bottom:3px;}
+  .stat .lbl{font-size:0.65rem;color:var(--muted);}
+
+  .cash-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--paper-dark);}
+  .cash-row:last-child{border-bottom:none;}
+  .cash-row-name{font-size:0.8rem;color:var(--charcoal);}
+  .cash-row-sub{font-family:'DM Mono',monospace;font-size:0.61rem;color:var(--muted);margin-top:2px;}
+  .cash-row-val{font-family:'DM Mono',monospace;font-size:0.82rem;font-weight:500;}
+
+  .tbl{width:100%;border-collapse:collapse;font-size:0.72rem;}
+  .tbl th{font-family:'DM Mono',monospace;font-size:0.57rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);text-align:right;padding:5px 7px;border-bottom:1px solid var(--border);font-weight:400;}
+  .tbl th:first-child{text-align:left;}
+  .tbl td{padding:6px 7px;border-bottom:1px solid var(--paper-dark);text-align:right;font-family:'DM Mono',monospace;font-size:0.7rem;}
+  .tbl td:first-child{text-align:left;font-family:'Noto Serif TC',serif;font-size:0.75rem;}
+  .tbl tr:last-child td{border-bottom:none;}
+  .tbl tr:hover td{background:var(--paper-dark);}
+  .ticker{font-weight:600;color:var(--charcoal);}
+
+  .tag{display:inline-block;font-family:'DM Mono',monospace;font-size:0.56rem;padding:1px 5px;border-radius:10px;margin-left:3px;}
+  .tw{background:#E3F0FF;color:#1A5FA8;}.us{background:#FFF0E8;color:#A84E1A;}
+  .lev{background:#F3E8FF;color:#7B1AA8;}.cash-t{background:#E8F5E9;color:#1A7B3A;}
+  .hold{background:#FFF8E8;color:#8B6914;}.crypto{background:#FFF0FF;color:#8B008B;}
+
+  .div{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:12px 0;}
+
+  .cf-scenario{margin-bottom:13px;}
+  .cf-scenario:last-child{margin-bottom:0;}
+  .cf-header{display:flex;justify-content:space-between;margin-bottom:5px;}
+  .cf-label{font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--charcoal);font-weight:500;}
+  .bar-bg{height:9px;background:var(--paper-dark);border-radius:5px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:5px;}
+  .cf-meta{font-family:'DM Mono',monospace;font-size:0.62rem;margin-top:4px;display:flex;justify-content:space-between;}
+
+  .debt-hd{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;}
+  .debt-name{font-size:0.8rem;font-weight:600;}
+  .debt-amt{font-family:'DM Mono',monospace;font-size:0.8rem;color:var(--red);}
+  .debt-bar-bg{height:5px;background:var(--paper-dark);border-radius:3px;overflow:hidden;margin-bottom:4px;}
+  .debt-bar{height:100%;border-radius:3px;}
+  .debt-meta{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);display:flex;justify-content:space-between;}
+
+  .tl{display:flex;margin-top:14px;}
+  .tl-item{flex:1;text-align:center;position:relative;}
+  .tl-item::before{content:'';position:absolute;top:11px;left:50%;right:-50%;height:2px;background:var(--border);z-index:0;}
+  .tl-item:last-child::before{display:none;}
+  .tl-dot{width:22px;height:22px;border-radius:50%;margin:0 auto 6px;position:relative;z-index:1;display:flex;align-items:center;justify-content:center;font-size:0.55rem;}
+  .tdone{background:var(--gold);border:2px solid var(--gold-dark);color:white;}
+  .tnow{background:white;border:2px solid var(--gold);box-shadow:0 0 0 3px rgba(201,169,110,0.2);color:var(--gold-dark);}
+  .tfuture{background:var(--paper-dark);border:2px solid var(--border);color:var(--muted);}
+  .twarn{background:#FFF3E0;border:2px solid #E67E22;color:#E67E22;}
+  .tl-date{font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);}
+  .tl-desc{font-size:0.66rem;color:var(--charcoal);margin-top:3px;line-height:1.3;}
+
+  .check-item{display:flex;gap:8px;padding:8px 0;border-bottom:1px solid var(--paper-dark);font-size:0.77rem;}
+  .check-item:last-child{border-bottom:none;}
+  .ci{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.56rem;flex-shrink:0;margin-top:1px;}
+  .ci-ok{background:#E8F5E9;color:var(--green);}
+  .ci-warn{background:#FFF3E0;color:#E67E22;}
+  .ci-plan{background:#EEF4FF;color:var(--blue);}
+  .check-text strong{font-weight:600;display:block;margin-bottom:2px;}
+  .check-sub{font-family:'DM Mono',monospace;font-size:0.61rem;color:var(--muted);line-height:1.5;}
+
+  .info-box{border-radius:3px;padding:9px 12px;font-size:0.7rem;line-height:1.6;margin-top:10px;}
+  .ig{background:#E8F5E9;color:#1a6b33;border-left:3px solid var(--green);}
+  .io{background:var(--gold-light);color:var(--gold-dark);border-left:3px solid var(--gold);}
+  .ib{background:#EEF4FF;color:#1a4a8a;border-left:3px solid var(--blue);}
+  .iw{background:#FFF3E0;color:#7a3e00;border-left:3px solid #E67E22;}
+
+  .scroll{max-height:340px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+  .gauge-wrap{display:flex;flex-direction:column;align-items:center;margin-top:4px;}
+  .alloc-row{display:flex;align-items:center;gap:7px;margin-top:8px;}
+  .alloc-lbl{width:26px;font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);}
+  .alloc-bar{flex:1;display:flex;gap:2px;}
+  .alloc-seg{height:6px;border-radius:3px;}
+  .alloc-pct{width:30px;text-align:right;font-family:'DM Mono',monospace;font-size:0.65rem;}
+
+  /* CONFIRM BANNER */
+  .confirm-banner{background:#FFF3E0;border-left:4px solid #E67E22;padding:10px 16px;font-family:'DM Mono',monospace;font-size:0.7rem;color:#7a3e00;display:flex;align-items:center;gap:10px;}
+  .confirm-banner strong{color:#c0590a;}
+
+  @media(max-width:900px){
+    .g3,.g2,.g21,.g12{grid-template-columns:1fr;}
+    .span2,.span3{grid-column:span 1;}
+    .header,.tabs,.page,.ctrl-bar,.status-bar{padding-left:16px;padding-right:16px;}
+    .cash-field label{min-width:58px;}
+    .cash-input{width:92px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <h1>JJ<em>財務</em>規劃系統</h1>
+    <div class="header-sub" id="lastUpdate">換股完成 · 2026-04-28 · NVDL 662股全數出清 → QQQI 3,603股 + NVDA 166股 · IBIT 原有部位確認</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <button class="update-btn" id="updateBtn" onclick="updateAll()">
+      <span id="btnIcon">⟳</span> 一鍵更新股價
+    </button>
+    <button onclick="saveToFile()" style="display:flex;align-items:center;gap:6px;background:var(--green);color:white;border:none;padding:8px 14px;border-radius:3px;font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.05em;cursor:pointer;transition:background .2s;" onmouseover="this.style.background='#1e8449'" onmouseout="this.style.background='var(--green)'">
+      💾 存檔
+    </button>
+    <div class="badge">✅ 換股完成</div>
+  </div>
+</div>
+
+<!-- CONTROL BAR -->
+<div class="ctrl-bar">
+  <div class="ctrl-section">
+    <span class="ctrl-label">💵 台幣帳戶</span>
+    <div class="cash-field">
+      <label>遠東活存</label>
+      <input class="cash-input" id="cash1" type="number" value="8908483" oninput="updateCash()">
+    </div>
+    <div class="cash-field">
+      <label>台新(貸款)</label>
+      <input class="cash-input" id="cash2" type="number" value="1192901" oninput="updateCash()">
+    </div>
+    <div class="cash-field">
+      <label>永豐股票戶</label>
+      <input class="cash-input" id="cash3" type="number" value="774127" oninput="updateCash()">
+    </div>
+  </div>
+  <div class="ctrl-section">
+    <span class="ctrl-label">🇺🇸 美元現金</span>
+    <div class="cash-field">
+      <label>永豐美股(USD)</label>
+      <input class="cash-input" id="cashUSD" type="number" value="334.78" step="0.01" oninput="updateCash()">
+    </div>
+  </div>
+  <div class="ctrl-section">
+    <span class="ctrl-label">💱 匯率</span>
+    <div class="cash-field">
+      <label>USD/TWD</label>
+      <input class="exr-input" id="exrInput" type="number" value="31.52" step="0.01" oninput="updateCash()">
+    </div>
+  </div>
+  <div class="ctrl-section">
+    <div class="cash-total-badge">現金合計：<strong id="cashBadge">$10,884,173</strong></div>
+  </div>
+</div>
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <div class="sdot" id="sdot"></div>
+  <span id="statusTxt" style="color:var(--muted);">現金可即時編輯 · 按「一鍵更新股價」從 Google Apps Script 抓取最新報價</span>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="sw('overview')">📊 資產總覽</div>
+  <div class="tab" onclick="sw('cashflow')">💰 現金流規劃</div>
+  <div class="tab" onclick="sw('holdings')">📋 持倉明細</div>
+  <div class="tab" onclick="sw('clec')">⚖️ CLEC策略</div>
+  <div class="tab" onclick="sw('debt')">🏦 負債管理</div>
+</div>
+
+<!-- ===== PAGE 1: 總覽 ===== -->
+<div class="page active" id="page-overview">
+  <div class="grid g3">
+
+    <div class="card span3">
+      <div class="clabel">淨資產總覽 · 換股後</div>
+      <div style="display:flex;align-items:baseline;gap:20px;flex-wrap:wrap;">
+        <div>
+          <div class="bignum gold" id="netWorthDisplay">$28,880,007</div>
+          <div class="sublabel" id="netWorthSub">總資產 $53,427,242 − 負債 $24,547,235 ｜ 槓桿 2.14x ｜ 匯率 31.52</div>
+        </div>
+      </div>
+      <div class="statrow" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr;">
+        <div class="stat"><div class="val blue" id="cashTotalStat">$10,884,173</div><div class="lbl">💵 現金合計</div></div>
+        <div class="stat"><div class="val green" id="investStat">—</div><div class="lbl">📈 投資部位</div></div>
+        <div class="stat"><div class="val red">−$24,547,235</div><div class="lbl">🏠 總負債</div></div>
+        <div class="stat"><div class="val gold" id="exrStat">31.52</div><div class="lbl">💱 USD/TWD</div></div>
+        <div class="stat"><div class="val" id="leverageStat" style="color:var(--charcoal);">2.14x</div><div class="lbl">⚡ 財務槓桿</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="clabel">現金明細</div>
+      <div class="cash-row"><div><div class="cash-row-name">🏦 遠東商銀高利活存</div><div class="cash-row-sub">台幣 · CLEC現金</div></div><div class="cash-row-val" id="dc1">$8,908,483</div></div>
+      <div class="cash-row"><div><div class="cash-row-name">🏦 台新（扣貸款）</div><div class="cash-row-sub">台幣 · CLEC現金</div></div><div class="cash-row-val" id="dc2">$1,192,901</div></div>
+      <div class="cash-row"><div><div class="cash-row-name">🏦 永豐股票戶</div><div class="cash-row-sub">台幣 · CLEC現金</div></div><div class="cash-row-val" id="dc3">$774,127</div></div>
+      <div class="cash-row"><div><div class="cash-row-name">🇺🇸 永豐美股帳戶</div><div class="cash-row-sub">美元 · 換算台幣</div></div><div class="cash-row-val" id="dcUSD">$8,574</div></div>
+      <div class="div"></div>
+      <div style="display:flex;justify-content:space-between;"><span style="font-size:0.82rem;font-weight:600;">現金合計</span><span class="cash-row-val gold" id="dcTotal">$10,884,085</span></div>
+    </div>
+
+    <div class="card">
+      <div class="clabel">淨資產走勢 · 2026.04（JSON快照）</div>
+      <canvas id="nwChart" height="185"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="clabel">退休健診</div>
+      <div class="check-item"><div class="ci ci-ok">✓</div><div class="check-text"><strong>換股計劃執行完成</strong><span class="check-sub">VTI/NVDL(全)/EWY/REMX已清空 · QQQI 9,302股 · NVDA 166股</span></div></div>
+      <div class="check-item"><div class="ci ci-ok">✓</div><div class="check-text"><strong>QQQI均值月配息 $185,126</strong><span class="check-sub">覆蓋率 105.8%，超過年領$210萬目標</span></div></div>
+      <div class="check-item"><div class="ci ci-ok">✓</div><div class="check-text"><strong>IBIT 116股（原有部位）</strong><span class="check-sub">均價$39.78，獲利+7.96%，比特幣ETF</span></div></div>
+      <div class="check-item"><div class="ci ci-warn">!</div><div class="check-text"><strong>房貸2寬限期約37個月後到期</strong><span class="check-sub">月還 $34K → $72K，月需求仍$175K</span></div></div>
+      <div class="check-item"><div class="ci ci-warn">!</div><div class="check-text"><strong>TSLL/SHNY 虧損持有</strong><span class="check-sub">等目標價出清，持續監控</span></div></div>
+      <div class="check-item"><div class="ci ci-ok">✓</div><div class="check-text"><strong>車貸2029.02還清</strong><span class="check-sub">34期後釋出 $47,222/月</span></div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== PAGE 2: 現金流 ===== -->
+<div class="page" id="page-cashflow">
+  <div class="grid g3">
+
+    <div class="card ag span3">
+      <div class="clabel">現金流目標 · 年領$210萬</div>
+      <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+        <div><div class="bignum green">$210萬/年</div><div class="sublabel">= 月領 $175,000 ｜ 全由QQQI配息支應</div></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <div class="stat" style="min-width:105px;"><div class="val" style="color:var(--charcoal);">$175,000</div><div class="lbl">月領目標</div></div>
+          <div class="stat" style="min-width:105px;"><div class="val green">9,302股</div><div class="lbl">QQQI（換股後）</div></div>
+          <div class="stat" style="min-width:105px;"><div class="val gold" id="cfQqqiPrice">—</div><div class="lbl">QQQI現價(USD)</div></div>
+          <div class="stat" style="min-width:105px;"><div class="val blue">14.04%</div><div class="lbl">年化殖利率</div></div>
+          <div class="stat" style="min-width:105px;"><div class="val green" id="cfMonthly">$185,150</div><div class="lbl">均值月配(TWD)</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card span2">
+      <div class="clabel">QQQI 歷史配息（實際數據）</div>
+      <canvas id="divChart" height="155"></canvas>
+      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);margin-top:6px;display:flex;gap:14px;flex-wrap:wrap;">
+        <span>📊 近12月均值: <strong style="color:var(--charcoal);">$0.6314</strong></span>
+        <span>📉 最低: <strong class="red">$0.5309</strong>(2025/04)</span>
+        <span>📈 最高: <strong class="green">$0.6445</strong>(2025/10)</span>
+        <span>🔵 最新: <strong class="blue">$0.6297</strong>(2026/04)</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="clabel">配息覆蓋率（9,302股）</div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);margin-bottom:10px;">目標 $175,000/月</div>
+      <div class="cf-scenario">
+        <div class="cf-header"><span class="cf-label">⚠️ 極端低 $0.5309</span></div>
+        <div class="bar-bg"><div class="bar-fill" style="width:89.1%;background:linear-gradient(90deg,#E74C3C,#C0392B);"></div></div>
+        <div class="cf-meta"><span class="red">$155,875　❌ −$19,125</span><span>89.1%</span></div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.61rem;color:var(--muted);margin-top:3px;">現金緩衝可補 <strong>40年</strong></div>
+      </div>
+      <div class="div"></div>
+      <div class="cf-scenario">
+        <div class="cf-header"><span class="cf-label">✅ 近12月均值 $0.6314</span></div>
+        <div class="bar-bg"><div class="bar-fill" style="width:100%;background:linear-gradient(90deg,#27AE60,#1e8449);"></div></div>
+        <div class="cf-meta"><span class="green">$185,150　✅ +$10,150</span><span>105.8%</span></div>
+      </div>
+      <div class="cf-scenario" style="margin-top:10px;">
+        <div class="cf-header"><span class="cf-label">✅ 最新 $0.6297（2026/04）</span></div>
+        <div class="bar-bg"><div class="bar-fill" style="width:100%;background:linear-gradient(90deg,#2473B5,#1a5a8f);"></div></div>
+        <div class="cf-meta"><span class="blue">$184,651　✅ +$9,651</span><span>105.5%</span></div>
+      </div>
+      <div class="cf-scenario" style="margin-top:10px;">
+        <div class="cf-header"><span class="cf-label">✅ 歷史最高 $0.6445</span></div>
+        <div class="bar-bg"><div class="bar-fill" style="width:100%;background:linear-gradient(90deg,#1a8a45,#145e30);"></div></div>
+        <div class="cf-meta"><span class="green">$189,192　✅ +$14,192</span><span>108.1%</span></div>
+      </div>
+      <div class="info-box ig">✅ 換股完成，均值覆蓋率 105.8%</div>
+    </div>
+
+    <div class="card span2">
+      <div class="clabel">還款結構三階段（月需求均 $175,000）</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+        <div style="border:1px solid var(--border);border-radius:3px;overflow:hidden;">
+          <div style="background:var(--paper-dark);padding:7px 11px;font-family:'DM Mono',monospace;font-size:0.63rem;display:flex;justify-content:space-between;"><span>現在→2029.02</span><span style="background:#FFEBE8;color:#C0392B;padding:1px 6px;border-radius:8px;font-size:0.58rem;">寬限+車貸</span></div>
+          <div style="padding:9px 11px;font-family:'DM Mono',monospace;font-size:0.7rem;line-height:2;">
+            <div>房貸2: $34,400</div><div>房貸1: $26,774</div><div style="color:#E67E22;">車貸:  $47,222</div>
+          </div>
+          <div style="padding:5px 11px;font-family:'DM Mono',monospace;font-size:0.61rem;color:var(--muted);border-top:1px solid var(--border);">還款$108,396 · 生活費$66,604</div>
+        </div>
+        <div style="border:1px solid var(--border);border-radius:3px;overflow:hidden;">
+          <div style="background:var(--paper-dark);padding:7px 11px;font-family:'DM Mono',monospace;font-size:0.63rem;display:flex;justify-content:space-between;"><span>2029.02→05</span><span style="background:#E8F5E9;color:#27AE60;padding:1px 6px;border-radius:8px;font-size:0.58rem;">甜蜜3個月</span></div>
+          <div style="padding:9px 11px;font-family:'DM Mono',monospace;font-size:0.7rem;line-height:2;">
+            <div>房貸2: $34,400</div><div>房貸1: $26,774</div><div style="color:var(--green);">車貸:  $0 ✓</div>
+          </div>
+          <div style="padding:5px 11px;font-family:'DM Mono',monospace;font-size:0.61rem;color:var(--green);border-top:1px solid var(--border);">還款$61,174 · 生活費$113,826 ✅</div>
+        </div>
+        <div style="border:1px solid var(--border);border-radius:3px;overflow:hidden;">
+          <div style="background:var(--paper-dark);padding:7px 11px;font-family:'DM Mono',monospace;font-size:0.63rem;display:flex;justify-content:space-between;"><span>2029.05以後</span><span style="background:#FFF3E0;color:#E67E22;padding:1px 6px;border-radius:8px;font-size:0.58rem;">房貸2跳升</span></div>
+          <div style="padding:9px 11px;font-family:'DM Mono',monospace;font-size:0.7rem;line-height:2;">
+            <div style="color:#E67E22;">房貸2: $72,182 ↑</div><div>房貸1: $26,774</div><div style="color:var(--green);">車貸:  $0 ✓</div>
+          </div>
+          <div style="padding:5px 11px;font-family:'DM Mono',monospace;font-size:0.61rem;color:var(--muted);border-top:1px solid var(--border);">還款$98,956 · 生活費$76,044</div>
+        </div>
+      </div>
+      <div class="info-box ib" style="margin-top:12px;">ℹ️ 三個階段月需求均為 $175,000，還款結構只影響生活費分配比例</div>
+    </div>
+
+    <div class="card">
+      <div class="clabel">長期QQQI成長路徑</div>
+      <div class="check-item" style="border:none;padding:5px 0;"><div class="ci ci-plan">1</div><div class="check-text"><strong>CLEC再平衡→超額現金轉QQQI</strong><span class="check-sub">槓桿漲多賣出，超額現金買QQQI</span></div></div>
+      <div class="check-item" style="border:none;padding:5px 0;"><div class="ci ci-plan">2</div><div class="check-text"><strong>TSLL出清後部分轉QQQI</strong><span class="check-sub">等TSLA回前高，半→TSLA，半→現金</span></div></div>
+      <div class="check-item" style="border:none;padding:5px 0;"><div class="ci ci-plan">3</div><div class="check-text"><strong>QQQ/SMH備選換QQQI</strong><span class="check-sub">需強化保守覆蓋率時再評估</span></div></div>
+      <div class="info-box io">目標：推進QQQI至11,000+股，保守情境也全覆蓋</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PAGE 3: 持倉 ===== -->
+<div class="page" id="page-holdings">
+  <div class="grid g12">
+    <div class="card">
+      <div class="clabel">配置結構</div>
+      <canvas id="pieChart" height="200"></canvas>
+      <div id="pieLegend" style="margin-top:10px;font-family:'DM Mono',monospace;font-size:0.62rem;line-height:2;"></div>
+    </div>
+    <div class="card">
+      <div class="clabel">完整持倉（含即時報價）</div>
+
+      <!-- 美股 -->
+      <div style="font-family:'DM Mono',monospace;font-size:0.63rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
+        <span>🇺🇸 美股</span>
+        <span id="us-group-total" style="color:var(--blue);"></span>
+      </div>
+      <table class="tbl" style="margin-bottom:18px;">
+        <thead>
+          <tr>
+            <th>代號</th><th>即時價</th>
+            <th style="cursor:pointer;" onclick="sortHoldings('val')">市值(TWD)<span id="sort-val"> ↓</span></th>
+            <th>成本</th>
+            <th style="cursor:pointer;" onclick="sortHoldings('gain')">損益%<span id="sort-gain"></span></th>
+            <th>數量</th><th>組內%</th><th>總%</th>
+            <th style="text-align:left;">狀態</th>
+          </tr>
+        </thead>
+        <tbody id="holdingsTbody-us"></tbody>
+      </table>
+
+      <!-- 台股 -->
+      <div style="font-family:'DM Mono',monospace;font-size:0.63rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
+        <span>🇹🇼 台股</span>
+        <span id="tw-group-total" style="color:var(--green);"></span>
+      </div>
+      <table class="tbl" style="margin-bottom:18px;">
+        <thead>
+          <tr>
+            <th>代號</th><th>即時價</th>
+            <th style="cursor:pointer;" onclick="sortHoldings('val')">市值(TWD)<span id="sort-val2"></span></th>
+            <th>成本</th>
+            <th style="cursor:pointer;" onclick="sortHoldings('gain')">損益%<span id="sort-gain2"></span></th>
+            <th>數量</th><th>組內%</th><th>總%</th>
+            <th style="text-align:left;">狀態</th>
+          </tr>
+        </thead>
+        <tbody id="holdingsTbody-tw"></tbody>
+      </table>
+
+      <!-- 加密 -->
+      <div style="font-family:'DM Mono',monospace;font-size:0.63rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
+        <span>₿ 加密貨幣</span>
+        <span id="crypto-group-total" style="color:#8B008B;"></span>
+      </div>
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>代號</th><th>即時價</th>
+            <th>市值(TWD)</th>
+            <th>成本</th><th>損益%</th>
+            <th>數量</th><th>組內%</th><th>總%</th>
+            <th style="text-align:left;">狀態</th>
+          </tr>
+        </thead>
+        <tbody id="holdingsTbody-crypto"></tbody>
+      </table>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== PAGE 4: CLEC ===== -->
+<div class="page" id="page-clec">
+  <div class="grid g3">
+
+    <!-- Beta 儀表 + 目標滑桿 -->
+    <div class="card">
+      <div class="clabel">Portfolio Beta</div>
+      <div class="gauge-wrap">
+        <svg id="betaGaugeSvg" width="148" height="82" viewBox="0 0 148 82">
+          <path d="M13 72 A60 60 0 0 1 135 72" fill="none" stroke="#EDE8E1" stroke-width="10" stroke-linecap="round"/>
+          <!-- 目標beta區間（綠色帶）-->
+          <path d="M13 72 A60 60 0 0 1 74 12" fill="none" stroke="#27AE60" stroke-width="10" stroke-linecap="round" opacity="0.15"/>
+          <!-- 目前beta弧 -->
+          <path id="gaugeCurrentArc" d="M13 72 A60 60 0 0 1 119 42" fill="none" stroke="#C9A96E" stroke-width="10" stroke-linecap="round"/>
+          <!-- 目標beta標記 -->
+          <circle id="gaugeTargetMark" cx="74" cy="12" r="5" fill="white" stroke="#27AE60" stroke-width="2"/>
+          <circle cx="74" cy="72" r="4" fill="#C9A96E"/>
+          <text x="9" y="84" font-size="8" fill="#6B6355" font-family="monospace">0x</text>
+          <text x="65" y="8" font-size="8" fill="#6B6355" font-family="monospace">1.0x</text>
+          <text x="130" y="58" font-size="8" fill="#6B6355" font-family="monospace">2x</text>
+        </svg>
+        <div id="clecBetaVal" style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:var(--gold-dark);text-align:center;margin-top:-3px;">—</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);text-align:center;text-transform:uppercase;letter-spacing:0.07em;">現在Beta · 白圈=目標Beta</div>
+      </div>
+
+      <!-- 目標 Beta 滑桿 -->
+      <div style="margin-top:14px;">
+        <div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);display:flex;justify-content:space-between;margin-bottom:5px;">
+          <span>目標 Beta</span>
+          <span id="targetBetaDisplay" style="color:var(--gold-dark);font-weight:600;">1.0x</span>
+        </div>
+        <input type="range" min="0" max="2" step="0.1" value="1.0"
+          style="width:100%;accent-color:var(--gold-dark);cursor:pointer;"
+          oninput="setTargetBeta(this.value)">
+        <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);display:flex;justify-content:space-between;margin-top:3px;">
+          <span>0x 全現金</span><span>1.0x 平衡</span><span>2.0x 全槓桿</span>
+        </div>
+      </div>
+
+      <!-- 配置條 -->
+      <div style="margin-top:14px;">
+        <div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);margin-bottom:5px;">配置比例</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span style="font-family:'DM Mono',monospace;font-size:0.63rem;width:26px;color:var(--muted);">目前</span>
+          <div style="flex:1;height:7px;background:var(--paper-dark);border-radius:4px;overflow:hidden;display:flex;">
+            <div id="clecCashBar" style="height:100%;background:var(--blue);opacity:0.75;transition:width .5s;width:40%;"></div>
+            <div id="clecLevBar"  style="height:100%;background:var(--gold);transition:width .5s;width:60%;"></div>
+          </div>
+          <span style="font-family:'DM Mono',monospace;font-size:0.63rem;width:70px;text-align:right;"><span id="clecCashPct">—</span> / <span id="clecLevPct">—</span></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-family:'DM Mono',monospace;font-size:0.63rem;width:26px;color:var(--muted);">目標</span>
+          <div style="flex:1;height:7px;background:var(--paper-dark);border-radius:4px;overflow:hidden;display:flex;">
+            <div id="clecTCashBar" style="height:100%;background:var(--blue);opacity:0.4;transition:width .5s;width:50%;"></div>
+            <div id="clecTLevBar"  style="height:100%;background:var(--gold);opacity:0.4;transition:width .5s;width:50%;"></div>
+          </div>
+          <span style="font-family:'DM Mono',monospace;font-size:0.63rem;width:70px;text-align:right;color:var(--muted);">目標配比</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 偏離 & 再平衡建議 -->
+    <div class="card">
+      <div class="clabel">偏離分析 · 再平衡建議</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+        <div class="stat">
+          <div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);margin-bottom:4px;">Beta偏離量</div>
+          <div id="clecBetaDiff" style="font-family:'DM Mono',monospace;font-size:0.85rem;font-weight:500;">—</div>
+        </div>
+        <div class="stat">
+          <div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);margin-bottom:4px;">觸發閾值</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.85rem;font-weight:500;color:var(--charcoal);">±10%</div>
+        </div>
+      </div>
+
+      <div id="clecRebalAdvice" class="info-box ig">按「一鍵更新」後計算</div>
+
+      <div class="div"></div>
+
+      <!-- CLEC再平衡規則 -->
+      <div style="font-family:'DM Mono',monospace;font-size:0.63rem;color:var(--muted);line-height:1.9;">
+        <div>⚡ Beta &gt; 目標×1.1 → <span style="color:var(--red);">賣槓桿，補現金</span></div>
+        <div>⚡ Beta &lt; 目標×0.9 → <span style="color:var(--blue);">買槓桿，減現金</span></div>
+        <div>✅ 偏離 &lt; ±10% → 無需操作</div>
+      </div>
+    </div>
+
+    <!-- CLEC 標的（可展開） -->
+    <div class="card">
+      <div class="clabel">CLEC 標的明細</div>
+
+      <!-- 現金群組 -->
+      <div style="border:1px solid var(--border);border-radius:3px;overflow:hidden;margin-bottom:8px;">
+        <div onclick="toggleGroup('cashGroup')" style="background:var(--paper-dark);padding:8px 12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
+          <span style="font-family:'DM Mono',monospace;font-size:0.68rem;font-weight:600;">🔵 現金 (Beta 0x)</span>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span id="clecCash" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--blue);">—</span>
+            <span style="font-size:0.7rem;color:var(--muted);">▾</span>
+          </div>
+        </div>
+        <div id="cashGroup" style="display:none;">
+          <table class="tbl" style="font-size:0.69rem;">
+            <tbody>
+              <tr><td>遠東活存</td><td id="clecC1" style="text-align:right;">—</td></tr>
+              <tr><td>台新(貸款)</td><td id="clecC2" style="text-align:right;">—</td></tr>
+              <tr><td>永豐股票戶</td><td id="clecC3" style="text-align:right;">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 槓桿群組 -->
+      <div style="border:1px solid var(--border);border-radius:3px;overflow:hidden;margin-bottom:8px;">
+        <div onclick="toggleGroup('levGroup')" style="background:var(--paper-dark);padding:8px 12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
+          <span style="font-family:'DM Mono',monospace;font-size:0.68rem;font-weight:600;">🟡 槓桿 (Beta 2.0x)</span>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span id="clecLevTotal" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--gold-dark);">—</span>
+            <span style="font-size:0.7rem;color:var(--muted);">▾</span>
+          </div>
+        </div>
+        <div id="levGroup" style="display:none;">
+          <table class="tbl" style="font-size:0.69rem;">
+            <tbody>
+              <tr><td><span class="tag lev">2x台</span> 00685L</td><td id="clec685" style="text-align:right;">—</td></tr>
+              <tr><td><span class="tag lev">2x台</span> 00631L</td><td id="clec631" style="text-align:right;">—</td></tr>
+              <tr><td><span class="tag lev">2x美</span> QLD</td><td id="clecQld" style="text-align:right;">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 合計 -->
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 2px;">
+        <span style="font-size:0.82rem;font-weight:600;">CLEC 合計</span>
+        <span id="clecTotal" style="font-family:'DM Mono',monospace;font-size:0.88rem;font-weight:600;color:var(--gold-dark);">—</span>
+      </div>
+    </div>
+
+    <!-- 負債管理已移至獨立分頁 -->
+  </div>
+</div>
+
+<!-- ===== PAGE 5: 負債管理 ===== -->
+<div class="page" id="page-debt">
+  <div class="grid g3">
+    <div class="card span3">
+      <div class="clabel">負債總覽</div>
+      <div style="display:flex;align-items:baseline;gap:20px;flex-wrap:wrap;margin-bottom:20px;">
+        <div>
+          <div class="bignum red">$24,547,235</div>
+          <div class="sublabel">總負債 · 3筆 · TWD ｜ 月還款合計 $108,396（寬限期）</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;">
+        <div>
+          <div class="debt-hd"><span class="debt-name">🏠 房貸 2</span><span class="debt-amt">−$17,165,600</span></div>
+          <div class="debt-bar-bg"><div class="debt-bar" style="width:70%;background:linear-gradient(90deg,#C0392B,#E74C3C);"></div></div>
+          <div class="debt-meta"><span>寬限期 $34,400/月（只還息）</span></div>
+          <div class="debt-meta" style="margin-top:2px;"><span style="color:#E67E22;">⚠️ 37個月後跳升至 $72,182/月</span></div>
+          <div class="debt-meta" style="margin-top:2px;"><span>2067年11月還清 · 499期</span></div>
+          <div style="margin-top:10px;background:var(--paper-dark);border-radius:3px;padding:10px 12px;font-family:'DM Mono',monospace;font-size:0.68rem;line-height:1.8;">
+            <div>本金：$17,165,600</div>
+            <div>利率：2.4%</div>
+            <div>扣款日：每月26日</div>
+          </div>
+        </div>
+        <div>
+          <div class="debt-hd"><span class="debt-name">🏠 房貸 1</span><span class="debt-amt">−$5,823,301</span></div>
+          <div class="debt-bar-bg"><div class="debt-bar" style="width:24%;background:linear-gradient(90deg,#E74C3C,#E8866E);"></div></div>
+          <div class="debt-meta"><span>$26,774/月（本息均攤）</span></div>
+          <div class="debt-meta" style="margin-top:2px;"><span>2044年6月還清 · 218期</span></div>
+          <div style="margin-top:10px;background:var(--paper-dark);border-radius:3px;padding:10px 12px;font-family:'DM Mono',monospace;font-size:0.68rem;line-height:1.8;">
+            <div>本金：$5,823,301</div>
+            <div>扣款日：每月26日</div>
+          </div>
+        </div>
+        <div>
+          <div class="debt-hd"><span class="debt-name">🚗 車貸</span><span class="debt-amt">−$1,558,334</span></div>
+          <div class="debt-bar-bg"><div class="debt-bar" style="width:6%;background:linear-gradient(90deg,#9B59B6,#B67CC4);"></div></div>
+          <div class="debt-meta"><span>$47,222/月</span></div>
+          <div class="debt-meta" style="margin-top:2px;"><span style="color:var(--green);">✅ 2029年2月還清 · 剩34期</span></div>
+          <div style="margin-top:10px;background:#E8F5E9;border-radius:3px;padding:10px 12px;font-family:'DM Mono',monospace;font-size:0.68rem;line-height:1.8;color:#1a6b33;">
+            <div>還清後月省 $47,222</div>
+            <div>扣款日：每月8日</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card span3">
+      <div class="clabel">還款結構三階段（月需求均 $175,000）</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+        <div style="border:1px solid var(--border);border-radius:3px;overflow:hidden;">
+          <div style="background:#FFEBE8;padding:8px 14px;font-family:'DM Mono',monospace;font-size:0.68rem;font-weight:600;color:#C0392B;display:flex;justify-content:space-between;">
+            <span>現在 → 2029.02</span><span>寬限+車貸</span>
+          </div>
+          <div style="padding:12px 14px;font-family:'DM Mono',monospace;font-size:0.72rem;line-height:2.2;">
+            <div style="display:flex;justify-content:space-between;"><span>房貸2</span><span>$34,400</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>房貸1</span><span>$26,774</span></div>
+            <div style="display:flex;justify-content:space-between;color:#E67E22;"><span>車貸</span><span>$47,222</span></div>
+          </div>
+          <div style="padding:8px 14px;background:var(--paper-dark);font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);border-top:1px solid var(--border);">
+            月還款 $108,396 ｜ 生活費 $66,604
+          </div>
+        </div>
+        <div style="border:1px solid var(--border);border-radius:3px;overflow:hidden;">
+          <div style="background:#E8F5E9;padding:8px 14px;font-family:'DM Mono',monospace;font-size:0.68rem;font-weight:600;color:#27AE60;display:flex;justify-content:space-between;">
+            <span>2029.02 → 2029.05</span><span>甜蜜3個月</span>
+          </div>
+          <div style="padding:12px 14px;font-family:'DM Mono',monospace;font-size:0.72rem;line-height:2.2;">
+            <div style="display:flex;justify-content:space-between;"><span>房貸2</span><span>$34,400</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>房貸1</span><span>$26,774</span></div>
+            <div style="display:flex;justify-content:space-between;color:var(--green);"><span>車貸</span><span>$0 ✓</span></div>
+          </div>
+          <div style="padding:8px 14px;background:#E8F5E9;font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--green);border-top:1px solid var(--border);">
+            月還款 $61,174 ｜ 生活費 $113,826 ✅
+          </div>
+        </div>
+        <div style="border:1px solid var(--border);border-radius:3px;overflow:hidden;">
+          <div style="background:#FFF3E0;padding:8px 14px;font-family:'DM Mono',monospace;font-size:0.68rem;font-weight:600;color:#E67E22;display:flex;justify-content:space-between;">
+            <span>2029.05 以後</span><span>房貸2跳升</span>
+          </div>
+          <div style="padding:12px 14px;font-family:'DM Mono',monospace;font-size:0.72rem;line-height:2.2;">
+            <div style="display:flex;justify-content:space-between;color:#E67E22;"><span>房貸2 ↑</span><span>$72,182</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>房貸1</span><span>$26,774</span></div>
+            <div style="display:flex;justify-content:space-between;color:var(--green);"><span>車貸</span><span>$0 ✓</span></div>
+          </div>
+          <div style="padding:8px 14px;background:var(--paper-dark);font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);border-top:1px solid var(--border);">
+            月還款 $98,956 ｜ 生活費 $76,044
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+// ===== 換股後持倉（從JSON實際數據）=====
+const POSITIONS = [
+  // 美股
+  {sym:'QQQI', shares:9302,  cost:52.5907, type:'us', role:'配息核心',   tag:'us',  tagLabel:'美'},
+  {sym:'QLD',  shares:1322,  cost:66.01,   type:'us', role:'CLEC槓桿',  tag:'lev', tagLabel:'2x'},
+  {sym:'QQQ',  shares:105,   cost:448.87,  type:'us', role:'成長',       tag:'us',  tagLabel:'美'},
+  {sym:'SMH',  shares:115,   cost:296.28,  type:'us', role:'成長',       tag:'us',  tagLabel:'美'},
+  {sym:'SHNY', shares:3680,  cost:16.578,  type:'us', role:'持有-等回升', tag:'lev', tagLabel:'3x金'},
+  {sym:'NVDA', shares:166,   cost:213.00,  type:'us', role:'成長',       tag:'us',  tagLabel:'美'},
+  {sym:'TSLL', shares:2866,  cost:15.28,   type:'us', role:'持有-等前高', tag:'lev', tagLabel:'2x'},
+  {sym:'TSLA', shares:45,    cost:438.72,  type:'us', role:'持有',       tag:'us',  tagLabel:'美'},
+  {sym:'URA',  shares:256,   cost:56.70,   type:'us', role:'持有',       tag:'us',  tagLabel:'美'},
+  {sym:'ITA',  shares:58,    cost:216.04,  type:'us', role:'持有',       tag:'us',  tagLabel:'美'},
+  {sym:'XLU',  shares:215,   cost:46.19,   type:'us', role:'持有',       tag:'us',  tagLabel:'美'},
+  {sym:'UFO',  shares:195,   cost:50.64,   type:'us', role:'持有',       tag:'us',  tagLabel:'美'},
+  {sym:'IBIT', shares:116,   cost:39.78,   type:'us', role:'比特幣ETF',  tag:'crypto', tagLabel:'加密'},
+  // 台股
+  {sym:'00685L',shares:29000,  cost:165.24, type:'tw', role:'CLEC槓桿', tag:'lev', tagLabel:'2x台'},
+  {sym:'00631L',shares:185000, cost:24.05,  type:'tw', role:'CLEC槓桿', tag:'lev', tagLabel:'2x台'},
+  {sym:'00981A',shares:17000,  cost:20.83,  type:'tw', role:'持有',     tag:'tw',  tagLabel:'台'},
+  {sym:'00994A',shares:28000,  cost:12.58,  type:'tw', role:'持有',     tag:'tw',  tagLabel:'台'},
+  {sym:'00992A',shares:26000,  cost:13.57,  type:'tw', role:'持有',     tag:'tw',  tagLabel:'台'},
+  {sym:'00991A',shares:26000,  cost:13.24,  type:'tw', role:'持有',     tag:'tw',  tagLabel:'台'},
+];
+
+// JSON快照市值（更新股價前的基準）
+const JSON_VALS = {
+  'QQQI':15746875,'QLD':3281155,'QQQ':2177135,'SMH':1779370,'SHNY':1460591,
+  'NVDA':1113077,'TSLL':1109054,'TSLA':536237,'URA':443953,'ITA':390712,
+  'XLU':313172,'UFO':307928,'IBIT':0,
+  '00685L':6661300,'00631L':5413100,'00981A':472600,'00994A':461720,
+  '00992A':442260,'00991A':432900
+};
+
+// ===== 財務槓桿說明：
+// 財務槓桿 = 總資產 / 淨資產
+// 這衡量的是「你用多少資產在支撐多少淨值」
+// 例：總資產100、負債70、淨資產30 → 槓桿=100/30=3.33x (合理)
+// 注意：這和CLEC的Beta槓桿是不同概念
+
+// ===== CLEC 設定 =====
+// 目標 Beta = 1.0x，以現金:槓桿 = 40:60 達成
+// 槓桿標的都是 2x ETF → 加權 Beta = 槓桿比例 × 2
+// 現金 Beta = 0
+const CLEC_ASSETS = [
+  { sym: 'TWD_CASH', name: '台幣現金', beta: 0,   getVal: () => {
+    const {c1,c2,c3} = getCash(); return c1+c2+c3;
+  }},
+  { sym: '00685L', name: '00685L', beta: 2.0, getVal: () => {
+    const {exr} = getCash();
+    return prices['00685L'] ? 29000 * prices['00685L'] : (JSON_VALS['00685L']||0);
+  }},
+  { sym: '00631L', name: '00631L', beta: 2.0, getVal: () => {
+    return prices['00631L'] ? 185000 * prices['00631L'] : (JSON_VALS['00631L']||0);
+  }},
+  { sym: 'QLD', name: 'QLD', beta: 2.0, getVal: () => {
+    const {exr} = getCash();
+    return prices['QLD'] ? 1322 * prices['QLD'] * exr : (JSON_VALS['QLD']||0);
+  }},
+];
+
+const LIABILITIES = 24547235;
+const QQQI_AVG_DIV = 0.6314;
+let prices = {};
+let pieChart;
+let targetBeta = 1.0; // 可調式目標Beta
+
+// ===== 計算 CLEC Beta =====
+function calcCLEC() {
+  const { c1, c2, c3, exr } = getCash();
+  const cashVal = c1 + c2 + c3;
+  const val685  = prices['00685L'] ? 29000  * prices['00685L']       : (JSON_VALS['00685L']||0);
+  const val631  = prices['00631L'] ? 185000 * prices['00631L']       : (JSON_VALS['00631L']||0);
+  const valQld  = prices['QLD']    ? 1322   * prices['QLD']   * exr  : (JSON_VALS['QLD']   ||0);
+  const levVal  = val685 + val631 + valQld;
+  const totalCLEC = cashVal + levVal;
+
+  // 加權平均 Beta（現金Beta=0，槓桿Beta=2）
+  const currentBeta = totalCLEC > 0 ? (levVal * 2) / totalCLEC : 0;
+  const cashPct = totalCLEC > 0 ? cashVal / totalCLEC * 100 : 0;
+  const levPct  = totalCLEC > 0 ? levVal  / totalCLEC * 100 : 0;
+
+  // 目標分配：targetBeta = levPct% / 100 × 2 → levPct = targetBeta / 2 × 100
+  const targetLevPct  = Math.min(targetBeta / 2 * 100, 100);
+  const targetCashPct = 100 - targetLevPct;
+  const targetLevVal  = totalCLEC * targetLevPct / 100;
+  const targetCashVal = totalCLEC * targetCashPct / 100;
+
+  // 偏離量
+  const betaDiff    = currentBeta - targetBeta;
+  const betaDiffPct = targetBeta > 0 ? betaDiff / targetBeta * 100 : 0;
+  const levAdj      = targetLevVal - levVal;   // 正=買, 負=賣
+  const cashAdj     = targetCashVal - cashVal; // 正=增現金, 負=減現金
+
+  return {
+    currentBeta, cashVal, levVal, totalCLEC,
+    cashPct, levPct, targetCashPct, targetLevPct,
+    betaDiff, betaDiffPct, levAdj, cashAdj,
+    val685, val631, valQld
+  };
+}
+
+// ===== 現金計算 =====
+function getCash() {
+  const exr = parseFloat(document.getElementById('exrInput').value) || 31.52;
+  const c1  = parseFloat(document.getElementById('cash1').value)  || 0;
+  const c2  = parseFloat(document.getElementById('cash2').value)  || 0;
+  const c3  = parseFloat(document.getElementById('cash3').value)  || 0;
+  const usd = parseFloat(document.getElementById('cashUSD').value)|| 0;
+  const usdTWD = usd * exr;
+  return { c1, c2, c3, usd, usdTWD, total: c1+c2+c3+usdTWD, exr };
+}
+
+function fmt(n) { return '$' + Math.round(n).toLocaleString(); }
+
+function updateCash() {
+  const { c1, c2, c3, usdTWD, total, exr } = getCash();
+  document.getElementById('cashBadge').textContent    = fmt(total);
+  document.getElementById('cashTotalStat').textContent = fmt(total);
+  document.getElementById('dc1').textContent    = fmt(c1);
+  document.getElementById('dc2').textContent    = fmt(c2);
+  document.getElementById('dc3').textContent    = fmt(c3);
+  document.getElementById('dcUSD').textContent   = fmt(usdTWD);
+  document.getElementById('dcTotal').textContent = fmt(total);
+  document.getElementById('exrStat').textContent = exr.toFixed(2);
+
+  // QQQI monthly
+  const monthly = Math.round(9302 * QQQI_AVG_DIV * exr);
+  document.getElementById('cfMonthly').textContent = fmt(monthly);
+
+  // 同步更新 CLEC 頁面
+  updateCLEC();
+
+  if (Object.keys(prices).length > 0) recalc();
+}
+
+// ===== RECALC =====
+function recalc() {
+  const { total: cashTWD, exr } = getCash();
+  let investTWD = 0;
+  POSITIONS.forEach(p => {
+    const price = prices[p.sym];
+    investTWD += price
+      ? (p.type === 'us' ? p.shares * price * exr : p.shares * price)
+      : (JSON_VALS[p.sym] || 0);
+  });
+
+  const totalAssets = cashTWD + investTWD;
+  const netWorth    = totalAssets - LIABILITIES;
+  // 財務槓桿 = 總資產 / 淨資產（衡量負債比例）
+  const leverage    = netWorth > 0 ? totalAssets / netWorth : 0;
+
+  document.getElementById('netWorthDisplay').textContent = fmt(netWorth);
+  document.getElementById('netWorthSub').textContent =
+    `總資產 ${fmt(totalAssets)} − 負債 ${fmt(LIABILITIES)} ｜ 財務槓桿 ${leverage.toFixed(2)}x ｜ 匯率 ${exr}`;
+  document.getElementById('investStat').textContent  = fmt(investTWD);
+  document.getElementById('leverageStat').textContent = leverage.toFixed(2) + 'x';
+
+  if (prices['QQQI']) document.getElementById('cfQqqiPrice').textContent = '$' + prices['QQQI'].toFixed(2);
+
+  updateCLEC();
+  renderHoldings();
+  updatePie(investTWD, cashTWD);
+}
+
+// ===== UPDATE CLEC PAGE =====
+function updateCLEC() {
+  const c = calcCLEC();
+  const triggerPct = 10; // 觸發再平衡的偏離%
+  const needRebalance = Math.abs(c.betaDiffPct) >= triggerPct;
+
+  // Beta 數值
+  const betaEl = document.getElementById('clecBetaVal');
+  if (betaEl) {
+    betaEl.textContent = c.currentBeta.toFixed(2) + 'x';
+    betaEl.style.color = needRebalance ? 'var(--red)' : 'var(--gold-dark)';
+  }
+
+  // 配置比例
+  const cashPctEl = document.getElementById('clecCashPct');
+  const levPctEl  = document.getElementById('clecLevPct');
+  if (cashPctEl) cashPctEl.textContent = c.cashPct.toFixed(1) + '%';
+  if (levPctEl)  levPctEl.textContent  = c.levPct.toFixed(1) + '%';
+
+  // 偏離資訊
+  const diffEl = document.getElementById('clecBetaDiff');
+  if (diffEl) {
+    const sign = c.betaDiff >= 0 ? '+' : '';
+    diffEl.textContent = `${sign}${c.betaDiff.toFixed(3)}x（${sign}${c.betaDiffPct.toFixed(1)}%）`;
+    diffEl.style.color = needRebalance ? 'var(--red)' : Math.abs(c.betaDiffPct) > 5 ? 'var(--orange)' : 'var(--green)';
+  }
+
+  // 再平衡建議
+  const rebalEl = document.getElementById('clecRebalAdvice');
+  if (rebalEl) {
+    // 精確計算：要使 Beta = targetBeta，需要的槓桿金額
+    // currentBeta = levVal * 2 / totalCLEC
+    // targetBeta  = targetLevVal * 2 / totalCLEC
+    // → targetLevVal = targetBeta * totalCLEC / 2
+    const exactTargetLevVal  = targetBeta * c.totalCLEC / 2;
+    const exactTargetCashVal = c.totalCLEC - exactTargetLevVal;
+    const exactLevAdj  = exactTargetLevVal  - c.levVal;   // 正=買, 負=賣
+    const exactCashAdj = exactTargetCashVal - c.cashVal;
+
+    if (!needRebalance) {
+      rebalEl.className = 'info-box ig';
+      rebalEl.innerHTML = `✅ 無需再平衡（偏離 ${c.betaDiffPct.toFixed(1)}%，未超過 ±${triggerPct}%）
+        <div style="margin-top:6px;font-size:0.63rem;color:var(--muted);">
+          若要精確達到目標 Beta ${targetBeta.toFixed(1)}x：<br>
+          槓桿調整 <strong>${exactLevAdj>=0?'+':''}${fmt(exactLevAdj)}</strong> ／ 現金調整 <strong>${exactCashAdj>=0?'+':''}${fmt(exactCashAdj)}</strong>
+        </div>`;
+    } else {
+      const action = exactLevAdj > 0 ? '買入槓桿' : '賣出槓桿';
+      const cashAction = exactCashAdj > 0 ? '增加現金' : '減少現金';
+      rebalEl.className = 'info-box iw';
+      rebalEl.innerHTML = `
+        <div style="color:var(--red);font-weight:600;margin-bottom:8px;">⚡ 建議再平衡（偏離 ${c.betaDiffPct.toFixed(1)}%）</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.72rem;line-height:2.2;">
+          <div>目標 Beta：<strong>${targetBeta.toFixed(1)}x</strong></div>
+          <div>${action}：<strong style="color:${exactLevAdj>0?'var(--blue)':'var(--red)'};">${fmt(Math.abs(exactLevAdj))}</strong></div>
+          <div>${cashAction}：<strong>${fmt(Math.abs(exactCashAdj))}</strong></div>
+          <div style="color:var(--muted);font-size:0.62rem;margin-top:4px;">
+            目標現金 ${fmt(exactTargetCashVal)} ／ 目標槓桿 ${fmt(exactTargetLevVal)}
+          </div>
+        </div>`;
+    }
+  }
+
+  // 目前配置條
+  const cashBarEl = document.getElementById('clecCashBar');
+  const levBarEl  = document.getElementById('clecLevBar');
+  const tCashBarEl= document.getElementById('clecTCashBar');
+  const tLevBarEl = document.getElementById('clecTLevBar');
+  if (cashBarEl) cashBarEl.style.width = Math.min(c.cashPct, 100) + '%';
+  if (levBarEl)  levBarEl.style.width  = Math.min(c.levPct,  100) + '%';
+  if (tCashBarEl) tCashBarEl.style.width = Math.min(c.targetCashPct, 100) + '%';
+  if (tLevBarEl)  tLevBarEl.style.width  = Math.min(c.targetLevPct,  100) + '%';
+
+  // CLEC 標的明細
+  const clecCashEl = document.getElementById('clecCash');
+  const clec685El  = document.getElementById('clec685');
+  const clec631El  = document.getElementById('clec631');
+  const clecQldEl  = document.getElementById('clecQld');
+  const clecTotalEl= document.getElementById('clecTotal');
+  if (clecCashEl) clecCashEl.textContent = fmt(c.cashVal);
+  if (clec685El)  clec685El.textContent  = fmt(c.val685);
+  if (clec631El)  clec631El.textContent  = fmt(c.val631);
+  if (clecQldEl)  clecQldEl.textContent  = fmt(c.valQld);
+  if (clecTotalEl) clecTotalEl.textContent = fmt(c.totalCLEC);
+
+  // 更新現金細項
+  const { c1, c2, c3 } = getCash();
+  const clecC1 = document.getElementById('clecC1');
+  const clecC2 = document.getElementById('clecC2');
+  const clecC3 = document.getElementById('clecC3');
+  if (clecC1) clecC1.textContent = fmt(c1);
+  if (clecC2) clecC2.textContent = fmt(c2);
+  if (clecC3) clecC3.textContent = fmt(c3);
+
+  // 槓桿合計
+  const clecLevTotalEl = document.getElementById('clecLevTotal');
+  if (clecLevTotalEl) clecLevTotalEl.textContent = fmt(c.val685 + c.val631 + c.valQld);
+
+  // 更新目標Beta slider顯示
+  const tbEl = document.getElementById('targetBetaDisplay');
+  if (tbEl) tbEl.textContent = targetBeta.toFixed(1) + 'x';
+
+  // 更新 gauge SVG
+  updateBetaGauge(c.currentBeta, targetBeta);
+}
+
+// ===== BETA GAUGE =====
+function updateBetaGauge(current, target) {
+  const svgEl = document.getElementById('betaGaugeSvg');
+  if (!svgEl) return;
+  // Beta 0→2 對應角度 180°→0°（半圓）
+  // 圓心(74,72), 半徑60, 從左到右
+  const betaToAngle = (b) => Math.PI - (Math.min(b, 2) / 2) * Math.PI;
+  const polarToXY = (angle) => ({
+    x: 74 + 60 * Math.cos(angle),
+    y: 72 - 60 * Math.sin(angle)
+  });
+
+  const cAngle = betaToAngle(current);
+  const cPt = polarToXY(cAngle);
+  const tAngle = betaToAngle(target);
+  const tPt = polarToXY(tAngle);
+
+  // 更新目前 Beta 弧
+  const curArc = document.getElementById('gaugeCurrentArc');
+  if (curArc) {
+    const large = (Math.PI - cAngle) > Math.PI ? 1 : 0;
+    curArc.setAttribute('d', `M13 72 A60 60 0 ${large} 1 ${cPt.x.toFixed(1)} ${cPt.y.toFixed(1)}`);
+    curArc.setAttribute('stroke', current > target * 1.1 ? '#C0392B' : current < target * 0.9 ? '#E67E22' : '#C9A96E');
+  }
+
+  // 目標Beta標記
+  const tMark = document.getElementById('gaugeTargetMark');
+  if (tMark) {
+    tMark.setAttribute('cx', tPt.x.toFixed(1));
+    tMark.setAttribute('cy', tPt.y.toFixed(1));
+  }
+}
+
+// ===== TARGET BETA SLIDER =====
+function setTargetBeta(val) {
+  targetBeta = parseFloat(val);
+  updateCLEC();
+}
+function sw(name) {
+  const tabs = ['overview','cashflow','holdings','clec','debt'];
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab')[tabs.indexOf(name)].classList.add('active');
+  document.getElementById('page-' + name).classList.add('active');
+}
+
+// ===== STATUS =====
+function setStatus(state, msg) {
+  const dot = document.getElementById('sdot');
+  const txt = document.getElementById('statusTxt');
+  dot.className = 'sdot ' + state;
+  txt.textContent = msg;
+  txt.style.color = state === 'err' ? 'var(--red)' : state === 'ok' ? 'var(--green)' : 'var(--muted)';
+}
+
+// ===== Google Apps Script API 網址 =====
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwnejxU7ADVL3Ulwo2mejdwpH0rZTIVRXIfpYnxBrwUz32z2dV6P19e9Uz0iD5wMkJ1RQ/exec';
+
+// ===== 從 Apps Script 抓取所有股價 =====
+async function fetchAllFromSheets() {
+  const url = APPS_SCRIPT_URL + '?t=' + Date.now();
+  const res = await fetch(url, { signal: AbortSignal.timeout(20000) });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return { prices: data.prices, exr: data.exr };
+}
+
+// ===== UPDATE ALL（從 Google Sheets）=====
+async function updateAll() {
+  const btn = document.getElementById('updateBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin">⟳</span> 從 Apps Script 更新…';
+  setStatus('loading', '正在從 Google Apps Script 讀取最新股價，約 5-10 秒…');
+
+  try {
+    const { prices: sheetsPrice, exr: sheetsExr } = await fetchAllFromSheets();
+
+    let ok = 0; const fail = [];
+    POSITIONS.forEach(p => {
+      if (sheetsPrice[p.sym] !== undefined) { prices[p.sym] = sheetsPrice[p.sym]; ok++; }
+      else fail.push(p.sym);
+    });
+
+    // 若試算表有回傳匯率，自動更新匯率欄位
+    if (sheetsExr) document.getElementById('exrInput').value = sheetsExr.toFixed(2);
+
+    recalc();
+
+    const now = new Date().toLocaleString('zh-TW', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('lastUpdate').textContent = `上次更新：${now} · 資料來源：Google Apps Script`;
+
+    if (fail.length === 0) {
+      setStatus('ok', `✅ 全部 ${ok} 檔更新成功${sheetsExr ? '（匯率 '+sheetsExr.toFixed(2)+'）' : ''} · ${now}`);
+    } else {
+      setStatus('ok', `⚠️ ${ok} 檔成功，${fail.length} 檔未取得（${fail.join(', ')}）· 顯示快照數據`);
+    }
+
+  } catch (err) {
+    setStatus('err', `❌ 無法讀取 Apps Script：${err.message} · 請確認部署設定「所有人可存取」`);
+    showManualInput(POSITIONS.map(p => p.sym));
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<span>⟳</span> 一鍵更新股價';
+}
+
+// ===== HOLDINGS TABLE (grouped) =====
+let holdingsSort = 'val';
+let holdingsSortDir = -1;
+
+function renderHoldings() {
+  const { exr } = getCash();
+  const roleTag = {'CLEC槓桿':'hold','配息核心':'us','成長':'us','持有-等回升':'hold','持有-等前高':'hold','持有':'hold','比特幣ETF':'crypto'};
+
+  const getVal = p => prices[p.sym]
+    ? (p.type === 'us' ? p.shares * prices[p.sym] * exr : p.shares * prices[p.sym])
+    : (JSON_VALS[p.sym] || 0);
+  const getGain = p => prices[p.sym] && p.cost ? (prices[p.sym] - p.cost) / p.cost * 100 : -999;
+
+  // 分類
+  const usPos     = POSITIONS.filter(p => p.type === 'us' && p.tag !== 'crypto');
+  const twPos     = POSITIONS.filter(p => p.type === 'tw');
+  const cryptoPos = POSITIONS.filter(p => p.tag === 'crypto');
+
+  // 各群組總市值
+  const usTotal     = usPos.reduce((s,p)=>s+getVal(p),0);
+  const twTotal     = twPos.reduce((s,p)=>s+getVal(p),0);
+  const cryptoTotal = cryptoPos.reduce((s,p)=>s+getVal(p),0);
+  const grandTotal  = usTotal + twTotal + cryptoTotal;
+
+  // 群組標題更新
+  const fmtPct = (v,t) => t>0 ? (v/t*100).toFixed(1)+'%' : '—';
+  const el = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+  el('us-group-total',     `${fmt(usTotal)} · 總${fmtPct(usTotal,grandTotal)}`);
+  el('tw-group-total',     `${fmt(twTotal)} · 總${fmtPct(twTotal,grandTotal)}`);
+  el('crypto-group-total', `${fmt(cryptoTotal)} · 總${fmtPct(cryptoTotal,grandTotal)}`);
+
+  // 排序函數
+  const sortFn = (a,b) => {
+    if (holdingsSort === 'val')  return holdingsSortDir * (getVal(b) - getVal(a));
+    if (holdingsSort === 'gain') return holdingsSortDir * (getGain(b) - getGain(a));
+    return 0;
+  };
+
+  // 渲染單一群組
+  const renderGroup = (tbodyId, group, groupTotal) => {
+    const sorted = [...group].sort(sortFn);
+    const tbody = document.getElementById(tbodyId);
+    if (!tbody) return;
+    if (sorted.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:10px;color:var(--muted);font-size:0.68rem;">無持倉</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = sorted.map(p => {
+      const price   = prices[p.sym];
+      const val     = getVal(p);
+      const gainPct = price && p.cost ? (price-p.cost)/p.cost*100 : null;
+      const inPct   = groupTotal > 0 ? (val/groupTotal*100).toFixed(1)+'%' : '—';
+      const totPct  = grandTotal > 0 ? (val/grandTotal*100).toFixed(1)+'%' : '—';
+      const priceStr = price ? '$'+price.toFixed(2) : '<span style="color:var(--muted);font-size:0.63rem;">快照</span>';
+      const gainStr  = gainPct !== null
+        ? `<span class="${gainPct>=0?'green':'red'}">${gainPct>=0?'+':''}${gainPct.toFixed(1)}%</span>` : '—';
+      return `<tr>
+        <td><span class="ticker">${p.sym}</span><span class="tag ${p.tag}">${p.tagLabel}</span></td>
+        <td>${priceStr}</td>
+        <td>${val ? fmt(val) : '—'}</td>
+        <td>${p.cost ? '$'+p.cost.toFixed(2) : '—'}</td>
+        <td>${gainStr}</td>
+        <td>${p.shares.toLocaleString()}</td>
+        <td style="color:var(--gold-dark);font-weight:500;">${inPct}</td>
+        <td style="color:var(--muted);">${totPct}</td>
+        <td><span class="tag ${roleTag[p.role]||'hold'}" style="font-size:0.56rem;">${p.role}</span></td>
+      </tr>`;
+    }).join('');
+  };
+
+  renderGroup('holdingsTbody-us',     usPos,     usTotal);
+  renderGroup('holdingsTbody-tw',     twPos,     twTotal);
+  renderGroup('holdingsTbody-crypto', cryptoPos, cryptoTotal);
+
+  // 更新圓餅圖 legend（4類，顯示金額和總佔比）
+  const legendEl = document.getElementById('pieLegend');
+  if (legendEl) {
+    const { total: cashTotal } = getCash();
+    const totalAll = cashTotal + grandTotal;
+    const cats4 = [
+      { icon:'🟡', name:'現金',   val: cashTotal, color: '#C9A96E' },
+      { icon:'🔵', name:'台股',   val: twTotal,   color: '#2473B5' },
+      { icon:'🟠', name:'美股',   val: usTotal,   color: '#D4580A' },
+      { icon:'🟣', name:'加密',   val: cryptoTotal, color: '#9B59B6' },
+    ];
+    legendEl.innerHTML = cats4.map(c => {
+      const pct = totalAll > 0 ? (c.val/totalAll*100).toFixed(1) : '0';
+      return `<div style="display:flex;justify-content:space-between;align-items:center;">
+        <span><span style="color:${c.color};">●</span> ${c.name}</span>
+        <span style="color:var(--charcoal);font-weight:500;">${fmt(c.val)} <span style="color:var(--muted);font-weight:400;">(${pct}%)</span></span>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ===== SORT HOLDINGS =====
+function sortHoldings(col) {
+  if (holdingsSort === col) holdingsSortDir *= -1;
+  else { holdingsSort = col; holdingsSortDir = -1; }
+  ['val','gain'].forEach(c => {
+    ['','2'].forEach(sfx => {
+      const el = document.getElementById('sort-'+c+sfx);
+      if (el) el.textContent = c === holdingsSort ? (holdingsSortDir===-1?' ↓':' ↑') : '';
+    });
+  });
+  renderHoldings();
+}
+
+// ===== SAVE TO FILE =====
+function saveToFile() {
+  const cash1Val   = document.getElementById('cash1').value;
+  const cash2Val   = document.getElementById('cash2').value;
+  const cash3Val   = document.getElementById('cash3').value;
+  const cashUSDVal = document.getElementById('cashUSD').value;
+  const exrVal     = document.getElementById('exrInput').value;
+  const pricesJSON = JSON.stringify(prices);
+  const dateStr    = new Date().toISOString().slice(0,10);
+
+  // 用 fetch 讀取原始 HTML（不是渲染後的 DOM）
+  fetch(location.href)
+    .then(r => r.text())
+    .then(html => {
+      // 1. 替換現金欄位預設值
+      html = html.replace(/(id="cash1"[^>]*?)value="[^"]*"/, `$1value="${cash1Val}"`);
+      html = html.replace(/(id="cash2"[^>]*?)value="[^"]*"/, `$1value="${cash2Val}"`);
+      html = html.replace(/(id="cash3"[^>]*?)value="[^"]*"/, `$1value="${cash3Val}"`);
+      html = html.replace(/(id="cashUSD"[^>]*?)value="[^"]*"/, `$1value="${cashUSDVal}"`);
+      html = html.replace(/(id="exrInput"[^>]*?)value="[^"]*"/, `$1value="${exrVal}"`);
+
+      // 2. 注入股價快照（在 </body> 前插入）
+      const inject = `<script>
+(function(){
+  var _p = ${pricesJSON};
+  window.addEventListener('DOMContentLoaded', function(){
+    if(typeof prices !== 'undefined' && Object.keys(_p).length > 0){
+      Object.assign(prices, _p);
+      if(typeof recalc === 'function') recalc();
+    }
+  });
+})();
+<\/script>`;
+      html = html.replace('</body>', inject + '\n</body>');
+
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = `JJ財務規劃系統_${dateStr}.html`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setStatus('ok', `✅ 已存檔 JJ財務規劃系統_${dateStr}.html（含股價快照）`);
+    })
+    .catch(() => {
+      // fetch 失敗（本機 file:// 協議）→ 提示手動存
+      setStatus('err', '❌ 請用瀏覽器「另存新檔」(Cmd+S) 儲存，存檔功能需要在伺服器環境才能自動讀取原始檔案');
+    });
+}
+
+// ===== PIE =====
+function updatePie(investTWD, cashTWD) {
+  const { exr } = getCash();
+  // 4 類別：現金 / 台股 / 美股 / 加密
+  const twVal     = POSITIONS.filter(p=>p.type==='tw').reduce((s,p)=>s+(prices[p.sym]?p.shares*prices[p.sym]:(JSON_VALS[p.sym]||0)),0);
+  const usVal     = POSITIONS.filter(p=>p.type==='us'&&p.tag!=='crypto').reduce((s,p)=>s+(prices[p.sym]?p.shares*prices[p.sym]*exr:(JSON_VALS[p.sym]||0)),0);
+  const cryptoVal = POSITIONS.filter(p=>p.tag==='crypto').reduce((s,p)=>s+(prices[p.sym]?p.shares*prices[p.sym]*exr:(JSON_VALS[p.sym]||0)),0);
+  // cashTWD 就是 getCash().total（含台幣三帳戶 + 美股現金換算）
+
+  const total = cashTWD + twVal + usVal + cryptoVal;
+
+  if (pieChart) {
+    pieChart.data.datasets[0].data = [
+      Math.round(cashTWD),
+      Math.round(twVal),
+      Math.round(usVal),
+      Math.round(cryptoVal),
+    ];
+    pieChart.options.plugins.tooltip.callbacks.label = (c) => {
+      const val = c.parsed;
+      const pct = total > 0 ? (val/total*100).toFixed(1) : '0';
+      const names = ['現金','台股','美股','加密貨幣'];
+      return ` ${names[c.dataIndex]}: $${Math.round(val).toLocaleString()} (${pct}%)`;
+    };
+    pieChart.update();
+  }
+}
+
+// ===== INIT CHARTS =====
+function initCharts() {
+  const nwData = [
+    {d:'04/18',nw:2784622,pf:27331857},{d:'04/19',nw:2720092,pf:27267327},
+    {d:'04/20',nw:2909833,pf:27457068},{d:'04/21',nw:3192868,pf:27740103},
+    {d:'04/22',nw:3243085,pf:27790320},{d:'04/23',nw:3225675,pf:27772910},
+    {d:'04/24',nw:4116692,pf:28663927},{d:'04/25',nw:4164180,pf:28711415},
+    {d:'04/26',nw:4164180,pf:28711415},{d:'04/27',nw:4611474,pf:29158709},
+    {d:'04/28',nw:4885381,pf:29432616},
+  ];
+  new Chart(document.getElementById('nwChart').getContext('2d'), {
+    type:'line',
+    data:{labels:nwData.map(d=>d.d),datasets:[
+      {label:'組合市值',data:nwData.map(d=>d.pf),borderColor:'#C9A96E',backgroundColor:'rgba(201,169,110,0.07)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#C9A96E',tension:.35,fill:true},
+      {label:'淨資產',data:nwData.map(d=>d.nw),borderColor:'#27AE60',backgroundColor:'rgba(39,174,96,0.07)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#27AE60',tension:.35,fill:true},
+    ]},
+    options:{responsive:true,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{labels:{font:{family:'DM Mono, monospace',size:11},color:'#6B6355',boxWidth:12}},
+        tooltip:{callbacks:{label:c=>` ${c.dataset.label}: $${c.parsed.y.toLocaleString()}`}}},
+      scales:{
+        y:{grid:{color:'rgba(201,169,110,0.1)'},ticks:{font:{family:'DM Mono, monospace',size:10},color:'#6B6355',callback:v=>'$'+(v/1e6).toFixed(1)+'M'}},
+        x:{grid:{display:false},ticks:{font:{family:'DM Mono, monospace',size:10},color:'#6B6355'}}
+      }
+    }
+  });
+
+  const divDates=['2024/07','2024/09','2024/10','2024/11','2024/12','2025/01','2025/02','2025/03','2025/04','2025/05','2025/06','2025/07','2025/08','2025/09','2025/10','2025/11','2025/12','2026/01','2026/02','2026/03','2026/04'];
+  const divVals=[0.6186,0.6022,0.6098,0.6116,0.6216,0.6241,0.6138,0.5867,0.5309,0.6374,0.6282,0.6366,0.6285,0.6411,0.6445,0.6304,0.6412,0.6359,0.6140,0.6089,0.6297];
+  const avg12=0.6314;
+  new Chart(document.getElementById('divChart').getContext('2d'), {
+    type:'bar',
+    data:{labels:divDates,datasets:[
+      {label:'月配息(USD/股)',data:divVals,
+        backgroundColor:divVals.map(v=>v===0.5309?'rgba(192,57,43,0.85)':v>=avg12?'rgba(39,174,96,0.75)':'rgba(201,169,110,0.75)'),
+        borderColor:divVals.map(v=>v===0.5309?'#C0392B':v>=avg12?'#1e8449':'#8B6914'),
+        borderWidth:1,borderRadius:2},
+      {label:`近12月均值 $${avg12}`,data:Array(divDates.length).fill(avg12),
+        type:'line',borderColor:'#2473B5',borderWidth:1.5,borderDash:[4,3],pointRadius:0,fill:false},
+    ]},
+    options:{responsive:true,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{labels:{font:{family:'DM Mono, monospace',size:11},color:'#6B6355',boxWidth:12}},
+        tooltip:{callbacks:{label:c=>` ${c.dataset.label}: $${typeof c.parsed.y==='number'?c.parsed.y.toFixed(4):c.raw}`}}},
+      scales:{
+        y:{min:0.48,max:0.67,grid:{color:'rgba(201,169,110,0.1)'},ticks:{font:{family:'DM Mono, monospace',size:10},color:'#6B6355',callback:v=>'$'+v.toFixed(2)}},
+        x:{grid:{display:false},ticks:{font:{family:'DM Mono, monospace',size:9},color:'#6B6355',maxRotation:45}}
+      }
+    }
+  });
+
+  // Pie: 4 類別 現金/台股/美股/加密
+  const twInit     = POSITIONS.filter(p=>p.type==='tw').reduce((s,p)=>s+(JSON_VALS[p.sym]||0),0);
+  const usInit     = POSITIONS.filter(p=>p.type==='us'&&p.tag!=='crypto').reduce((s,p)=>s+(JSON_VALS[p.sym]||0),0);
+  const cryptoInit = POSITIONS.filter(p=>p.tag==='crypto').reduce((s,p)=>s+(JSON_VALS[p.sym]||0),0);
+  const cashInit   = 10875511;
+
+  pieChart = new Chart(document.getElementById('pieChart').getContext('2d'), {
+    type:'doughnut',
+    data:{
+      labels:['現金','台股','美股','加密貨幣'],
+      datasets:[{
+        data:[cashInit, twInit, usInit, cryptoInit],
+        backgroundColor:['#C9A96E','#2473B5','#D4580A','#9B59B6'],
+        borderColor:'white', borderWidth:2
+      }]
+    },
+    options:{
+      responsive:true, cutout:'62%',
+      plugins:{
+        legend:{
+          display:true,
+          position:'bottom',
+          labels:{
+            font:{family:'DM Mono, monospace',size:11},
+            color:'#6B6355', boxWidth:12, padding:10,
+            generateLabels: (chart) => {
+              const data = chart.data;
+              const total = data.datasets[0].data.reduce((s,v)=>s+v,0);
+              return data.labels.map((label,i) => ({
+                text: `${label}  ${total>0?(data.datasets[0].data[i]/total*100).toFixed(1)+'%':''}`,
+                fillStyle: data.datasets[0].backgroundColor[i],
+                strokeStyle: 'white',
+                lineWidth: 2,
+                index: i,
+              }));
+            }
+          }
+        },
+        tooltip:{
+          callbacks:{
+            label: (c) => {
+              const total = c.dataset.data.reduce((s,v)=>s+v,0);
+              const pct = total>0?(c.parsed/total*100).toFixed(1):'0';
+              return ` ${c.label}: $${Math.round(c.parsed).toLocaleString()} (${pct}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// ===== ACCORDION =====
+function toggleGroup(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+initCharts();
+updateCash();
+
+// ===== 手動輸入股價 =====
+function showManualInput(failedSyms) {
+  // 只顯示美股（台股快照數據夠用）
+  const usFailed = failedSyms.filter(s => POSITIONS.find(p => p.sym===s && p.type==='us'));
+  if (usFailed.length === 0) return;
+
+  const existing = document.getElementById('manualModal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'manualModal';
+  modal.style.cssText = `
+    position:fixed;bottom:20px;right:20px;z-index:9999;
+    background:white;border:1px solid var(--border);border-radius:6px;
+    box-shadow:0 8px 32px rgba(0,0,0,0.12);width:360px;
+    font-family:'DM Mono',monospace;font-size:0.72rem;
+  `;
+
+  const fields = usFailed.map(sym => {
+    const pos = POSITIONS.find(p => p.sym === sym);
+    return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;">
+      <span style="width:56px;font-weight:600;color:var(--charcoal);">${sym}</span>
+      <span style="flex:1;font-size:0.62rem;color:var(--muted);">${pos?.shares?.toLocaleString()}股</span>
+      <span style="color:var(--muted);font-size:0.65rem;">US$</span>
+      <input id="mp_${sym}" type="number" step="0.01" placeholder="輸入價格"
+        style="width:88px;border:1px solid var(--border);border-radius:2px;padding:4px 7px;font-family:'DM Mono',monospace;font-size:0.71rem;text-align:right;"
+        onkeydown="if(event.key==='Enter')applyManual()">
+    </div>`;
+  }).join('');
+
+  modal.innerHTML = `
+    <div style="padding:14px 16px 10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);">✏️ 手動輸入股價（USD）</span>
+      <button onclick="document.getElementById('manualModal').remove()"
+        style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:1rem;line-height:1;">×</button>
+    </div>
+    <div style="padding:12px 16px;">
+      <div style="font-size:0.64rem;color:var(--muted);margin-bottom:10px;">
+        從 Yahoo Finance / Google Finance 查好價格後貼入
+      </div>
+      ${fields}
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button onclick="applyManual()" style="flex:1;background:var(--charcoal);color:white;border:none;padding:8px;border-radius:3px;cursor:pointer;font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;">套用</button>
+        <button onclick="document.getElementById('manualModal').remove()" style="background:var(--paper-dark);color:var(--muted);border:none;padding:8px 12px;border-radius:3px;cursor:pointer;font-family:'DM Mono',monospace;font-size:0.7rem;">取消</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+function applyManual() {
+  let updated = 0;
+  POSITIONS.forEach(p => {
+    const input = document.getElementById('mp_' + p.sym);
+    if (!input) return;
+    const val = parseFloat(input.value);
+    if (val > 0) { prices[p.sym] = val; updated++; }
+  });
+  if (updated > 0) {
+    recalc();
+    const now = new Date().toLocaleString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+    setStatus('ok', `✅ 手動更新 ${updated} 檔股價 · ${now}`);
+    document.getElementById('lastUpdate').textContent = `上次更新：${now} · 手動輸入`;
+  }
+  document.getElementById('manualModal').remove();
+}
+
+// 按鈕：手動輸入
+document.querySelector('.header-right').insertAdjacentHTML('afterbegin',
+  `<button onclick="showManualInput(POSITIONS.map(p=>p.sym))"
+    style="display:flex;align-items:center;gap:6px;background:var(--paper-dark);color:var(--charcoal);border:1px solid var(--border);padding:7px 13px;border-radius:3px;font-family:'DM Mono',monospace;font-size:0.68rem;cursor:pointer;">
+    ✏️ 手動輸入股價
+  </button>`
+);
+</script>
+</body>
+</html>
