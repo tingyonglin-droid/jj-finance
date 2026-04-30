@@ -239,11 +239,11 @@
   <div class="grid g3">
 
     <div class="card span3">
-      <div class="clabel">淨資產總覽 · 換股後</div>
+      <div class="clabel">淨資產總覽</div>
       <div style="display:flex;align-items:baseline;gap:20px;flex-wrap:wrap;">
         <div>
           <div class="bignum gold" id="netWorthDisplay">$28,880,007</div>
-          <div class="sublabel" id="netWorthSub">總資產 $53,427,242 − 負債 $24,547,235 ｜ 槓桿 2.14x ｜ 匯率 31.52</div>
+          <div class="sublabel" id="netWorthSub">總資產 − 負債 $24,547,235 ｜ 財務槓桿 · 匯率</div>
         </div>
       </div>
       <div class="statrow" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr;">
@@ -265,19 +265,12 @@
       <div style="display:flex;justify-content:space-between;"><span style="font-size:0.82rem;font-weight:600;">現金合計</span><span class="cash-row-val gold" id="dcTotal">$10,884,085</span></div>
     </div>
 
-    <div class="card">
-      <div class="clabel">淨資產走勢 · 2026.04（JSON快照）</div>
-      <canvas id="nwChart" height="185"></canvas>
-    </div>
-
-    <div class="card">
-      <div class="clabel">退休健診</div>
-      <div class="check-item"><div class="ci ci-ok">✓</div><div class="check-text"><strong>換股計劃執行完成</strong><span class="check-sub">VTI/NVDL(全)/EWY/REMX已清空 · QQQI 9,302股 · NVDA 166股</span></div></div>
-      <div class="check-item"><div class="ci ci-ok">✓</div><div class="check-text"><strong>QQQI均值月配息 $185,126</strong><span class="check-sub">覆蓋率 105.8%，超過年領$210萬目標</span></div></div>
-      <div class="check-item"><div class="ci ci-ok">✓</div><div class="check-text"><strong>IBIT 116股（原有部位）</strong><span class="check-sub">均價$39.78，獲利+7.96%，比特幣ETF</span></div></div>
-      <div class="check-item"><div class="ci ci-warn">!</div><div class="check-text"><strong>房貸2寬限期約37個月後到期</strong><span class="check-sub">月還 $34K → $72K，月需求仍$175K</span></div></div>
-      <div class="check-item"><div class="ci ci-warn">!</div><div class="check-text"><strong>TSLL/SHNY 虧損持有</strong><span class="check-sub">等目標價出清，持續監控</span></div></div>
-      <div class="check-item"><div class="ci ci-ok">✓</div><div class="check-text"><strong>車貸2029.02還清</strong><span class="check-sub">34期後釋出 $47,222/月</span></div></div>
+    <div class="card span2">
+      <div class="clabel">配置結構</div>
+      <div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap;">
+        <div style="flex:0 0 220px;"><canvas id="pieChart" height="220"></canvas></div>
+        <div id="pieLegend" style="flex:1;font-family:'DM Mono',monospace;font-size:0.68rem;line-height:2.4;min-width:160px;"></div>
+      </div>
     </div>
 
   </div>
@@ -288,12 +281,23 @@
   <div class="grid g3">
 
     <div class="card ag span3">
-      <div class="clabel">現金流目標 · 年領$210萬</div>
+      <div class="clabel">現金流目標</div>
       <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
-        <div><div class="bignum green">$210萬/年</div><div class="sublabel">= 月領 $175,000 ｜ 全由QQQI配息支應</div></div>
+        <div>
+          <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
+            <div class="bignum green" id="annualTargetDisplay">$210萬/年</div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <input type="number" id="annualTargetInput" value="2100000" step="100000"
+                style="width:120px;border:1px solid rgba(39,174,96,0.4);border-radius:3px;padding:5px 9px;font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--charcoal);background:white;text-align:right;"
+                oninput="updateAnnualTarget()">
+              <span style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);">TWD/年</span>
+            </div>
+          </div>
+          <div class="sublabel" id="annualTargetSub">= 月領 $175,000 ｜ 全由QQQI配息支應</div>
+        </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <div class="stat" style="min-width:105px;"><div class="val" style="color:var(--charcoal);">$175,000</div><div class="lbl">月領目標</div></div>
-          <div class="stat" style="min-width:105px;"><div class="val green">9,302股</div><div class="lbl">QQQI（換股後）</div></div>
+          <div class="stat" style="min-width:105px;"><div class="val" style="color:var(--charcoal);" id="monthlyTargetStat">$175,000</div><div class="lbl">月領目標</div></div>
+          <div class="stat" style="min-width:105px;"><div class="val green" id="qqqiSharesStat">9,302股</div><div class="lbl">QQQI持股</div></div>
           <div class="stat" style="min-width:105px;"><div class="val gold" id="cfQqqiPrice">—</div><div class="lbl">QQQI現價(USD)</div></div>
           <div class="stat" style="min-width:105px;"><div class="val blue">14.04%</div><div class="lbl">年化殖利率</div></div>
           <div class="stat" style="min-width:105px;"><div class="val green" id="cfMonthly">$185,150</div><div class="lbl">均值月配(TWD)</div></div>
@@ -313,31 +317,31 @@
     </div>
 
     <div class="card">
-      <div class="clabel">配息覆蓋率（9,302股）</div>
-      <div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);margin-bottom:10px;">目標 $175,000/月</div>
+      <div class="clabel">配息覆蓋率</div>
+      <div id="cov-target-label" style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);margin-bottom:10px;">目標 $175,000/月</div>
       <div class="cf-scenario">
-        <div class="cf-header"><span class="cf-label">⚠️ 極端低 $0.5309</span></div>
-        <div class="bar-bg"><div class="bar-fill" style="width:89.1%;background:linear-gradient(90deg,#E74C3C,#C0392B);"></div></div>
-        <div class="cf-meta"><span class="red">$155,875　❌ −$19,125</span><span>89.1%</span></div>
+        <div class="cf-header"><span class="cf-label" id="cov-low-lbl">⚠️ 極端低 $0.5309</span></div>
+        <div class="bar-bg"><div class="bar-fill" id="cov-low-bar" style="width:89.1%;background:linear-gradient(90deg,#E74C3C,#C0392B);"></div></div>
+        <div class="cf-meta" id="cov-low-meta"><span class="red">$155,875　❌ −$19,125</span><span>89.1%</span></div>
         <div style="font-family:'DM Mono',monospace;font-size:0.61rem;color:var(--muted);margin-top:3px;">現金緩衝可補 <strong>40年</strong></div>
       </div>
       <div class="div"></div>
       <div class="cf-scenario">
         <div class="cf-header"><span class="cf-label">✅ 近12月均值 $0.6314</span></div>
-        <div class="bar-bg"><div class="bar-fill" style="width:100%;background:linear-gradient(90deg,#27AE60,#1e8449);"></div></div>
-        <div class="cf-meta"><span class="green">$185,150　✅ +$10,150</span><span>105.8%</span></div>
+        <div class="bar-bg"><div class="bar-fill" id="cov-avg-bar" style="width:100%;background:linear-gradient(90deg,#27AE60,#1e8449);"></div></div>
+        <div class="cf-meta" id="cov-avg-meta"><span class="green">$185,150　✅ +$10,150</span><span>105.8%</span></div>
       </div>
       <div class="cf-scenario" style="margin-top:10px;">
         <div class="cf-header"><span class="cf-label">✅ 最新 $0.6297（2026/04）</span></div>
-        <div class="bar-bg"><div class="bar-fill" style="width:100%;background:linear-gradient(90deg,#2473B5,#1a5a8f);"></div></div>
-        <div class="cf-meta"><span class="blue">$184,651　✅ +$9,651</span><span>105.5%</span></div>
+        <div class="bar-bg"><div class="bar-fill" id="cov-now-bar" style="width:100%;background:linear-gradient(90deg,#2473B5,#1a5a8f);"></div></div>
+        <div class="cf-meta" id="cov-now-meta"><span class="blue">$184,651　✅ +$9,651</span><span>105.5%</span></div>
       </div>
       <div class="cf-scenario" style="margin-top:10px;">
         <div class="cf-header"><span class="cf-label">✅ 歷史最高 $0.6445</span></div>
-        <div class="bar-bg"><div class="bar-fill" style="width:100%;background:linear-gradient(90deg,#1a8a45,#145e30);"></div></div>
-        <div class="cf-meta"><span class="green">$189,192　✅ +$14,192</span><span>108.1%</span></div>
+        <div class="bar-bg"><div class="bar-fill" id="cov-high-bar" style="width:100%;background:linear-gradient(90deg,#1a8a45,#145e30);"></div></div>
+        <div class="cf-meta" id="cov-high-meta"><span class="green">$189,192　✅ +$14,192</span><span>108.1%</span></div>
       </div>
-      <div class="info-box ig">✅ 換股完成，均值覆蓋率 105.8%</div>
+      <div class="info-box ig" id="cov-summary">✅ 均值覆蓋率 105.8%</div>
     </div>
 
     <div class="card span2">
@@ -380,72 +384,65 @@
 
 <!-- ===== PAGE 3: 持倉 ===== -->
 <div class="page" id="page-holdings">
-  <div class="grid g12">
-    <div class="card">
-      <div class="clabel">配置結構</div>
-      <canvas id="pieChart" height="200"></canvas>
-      <div id="pieLegend" style="margin-top:10px;font-family:'DM Mono',monospace;font-size:0.62rem;line-height:2;"></div>
+  <div class="card">
+    <div class="clabel">完整持倉（含即時報價）</div>
+
+    <!-- 美股 -->
+    <div style="font-family:'DM Mono',monospace;font-size:0.63rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
+      <span>🇺🇸 美股</span>
+      <span id="us-group-total" style="color:var(--blue);"></span>
     </div>
-    <div class="card">
-      <div class="clabel">完整持倉（含即時報價）</div>
+    <table class="tbl" style="margin-bottom:18px;">
+      <thead>
+        <tr>
+          <th>代號</th><th>即時價</th>
+          <th style="cursor:pointer;" onclick="sortHoldings('val')">市值(TWD)<span id="sort-val"> ↓</span></th>
+          <th>成本</th>
+          <th style="cursor:pointer;" onclick="sortHoldings('gain')">損益%<span id="sort-gain"></span></th>
+          <th>數量</th><th>組內%</th><th>總%</th>
+          <th style="text-align:left;">狀態</th>
+        </tr>
+      </thead>
+      <tbody id="holdingsTbody-us"></tbody>
+    </table>
 
-      <!-- 美股 -->
-      <div style="font-family:'DM Mono',monospace;font-size:0.63rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
-        <span>🇺🇸 美股</span>
-        <span id="us-group-total" style="color:var(--blue);"></span>
-      </div>
-      <table class="tbl" style="margin-bottom:18px;">
-        <thead>
-          <tr>
-            <th>代號</th><th>即時價</th>
-            <th style="cursor:pointer;" onclick="sortHoldings('val')">市值(TWD)<span id="sort-val"> ↓</span></th>
-            <th>成本</th>
-            <th style="cursor:pointer;" onclick="sortHoldings('gain')">損益%<span id="sort-gain"></span></th>
-            <th>數量</th><th>組內%</th><th>總%</th>
-            <th style="text-align:left;">狀態</th>
-          </tr>
-        </thead>
-        <tbody id="holdingsTbody-us"></tbody>
-      </table>
-
-      <!-- 台股 -->
-      <div style="font-family:'DM Mono',monospace;font-size:0.63rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
-        <span>🇹🇼 台股</span>
-        <span id="tw-group-total" style="color:var(--green);"></span>
-      </div>
-      <table class="tbl" style="margin-bottom:18px;">
-        <thead>
-          <tr>
-            <th>代號</th><th>即時價</th>
-            <th style="cursor:pointer;" onclick="sortHoldings('val')">市值(TWD)<span id="sort-val2"></span></th>
-            <th>成本</th>
-            <th style="cursor:pointer;" onclick="sortHoldings('gain')">損益%<span id="sort-gain2"></span></th>
-            <th>數量</th><th>組內%</th><th>總%</th>
-            <th style="text-align:left;">狀態</th>
-          </tr>
-        </thead>
-        <tbody id="holdingsTbody-tw"></tbody>
-      </table>
-
-      <!-- 加密 -->
-      <div style="font-family:'DM Mono',monospace;font-size:0.63rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
-        <span>₿ 加密貨幣</span>
-        <span id="crypto-group-total" style="color:#8B008B;"></span>
-      </div>
-      <table class="tbl">
-        <thead>
-          <tr>
-            <th>代號</th><th>即時價</th>
-            <th>市值(TWD)</th>
-            <th>成本</th><th>損益%</th>
-            <th>數量</th><th>組內%</th><th>總%</th>
-            <th style="text-align:left;">狀態</th>
-          </tr>
-        </thead>
-        <tbody id="holdingsTbody-crypto"></tbody>
-      </table>
-
+    <!-- 台股 -->
+    <div style="font-family:'DM Mono',monospace;font-size:0.63rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
+      <span>🇹🇼 台股</span>
+      <span id="tw-group-total" style="color:var(--green);"></span>
     </div>
+    <table class="tbl" style="margin-bottom:18px;">
+      <thead>
+        <tr>
+          <th>代號</th><th>即時價</th>
+          <th style="cursor:pointer;" onclick="sortHoldings('val')">市值(TWD)<span id="sort-val2"></span></th>
+          <th>成本</th>
+          <th style="cursor:pointer;" onclick="sortHoldings('gain')">損益%<span id="sort-gain2"></span></th>
+          <th>數量</th><th>組內%</th><th>總%</th>
+          <th style="text-align:left;">狀態</th>
+        </tr>
+      </thead>
+      <tbody id="holdingsTbody-tw"></tbody>
+    </table>
+
+    <!-- 加密 -->
+    <div style="font-family:'DM Mono',monospace;font-size:0.63rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
+      <span>₿ 加密貨幣</span>
+      <span id="crypto-group-total" style="color:#8B008B;"></span>
+    </div>
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>代號</th><th>即時價</th>
+          <th>市值(TWD)</th>
+          <th>成本</th><th>損益%</th>
+          <th>數量</th><th>組內%</th><th>總%</th>
+          <th style="text-align:left;">狀態</th>
+        </tr>
+      </thead>
+      <tbody id="holdingsTbody-crypto"></tbody>
+    </table>
+
   </div>
 </div>
 
@@ -1034,6 +1031,50 @@ function setTargetBeta(val) {
   targetBeta = parseFloat(val);
   updateCLEC();
 }
+// ===== 年領目標（可手動修改）=====
+let annualTarget = 2100000;
+
+function updateAnnualTarget() {
+  const val = parseFloat(document.getElementById('annualTargetInput').value) || 2100000;
+  annualTarget = val;
+  const monthly = Math.round(val / 12);
+  const wan     = (val / 10000).toFixed(0);
+
+  document.getElementById('annualTargetDisplay').textContent = `$${wan}萬/年`;
+  document.getElementById('annualTargetSub').textContent     = `= 月領 $${monthly.toLocaleString()} ｜ 全由QQQI配息支應`;
+  document.getElementById('monthlyTargetStat').textContent   = '$' + monthly.toLocaleString();
+  updateCoverageCards(monthly);
+}
+
+function updateCoverageCards(monthlyTarget) {
+  if (!monthlyTarget) monthlyTarget = Math.round(annualTarget / 12);
+  const { exr } = getCash();
+  const qqqiPos    = POSITIONS.find(p => p.sym === 'QQQI');
+  const qqqiShares = qqqiPos ? qqqiPos.shares : 9302;
+
+  const el = document.getElementById('qqqiSharesStat');
+  if (el) el.textContent = qqqiShares.toLocaleString() + '股';
+
+  const tEl = document.getElementById('cov-target-label');
+  if (tEl) tEl.textContent = `目標 $${monthlyTarget.toLocaleString()}/月`;
+
+  [
+    { id:'cov-low',  rate:0.5309 },
+    { id:'cov-avg',  rate:0.6314 },
+    { id:'cov-now',  rate:0.6297 },
+    { id:'cov-high', rate:0.6445 },
+  ].forEach(s => {
+    const monthly = qqqiShares * s.rate * exr;
+    const pct     = monthlyTarget > 0 ? Math.min(monthly / monthlyTarget * 100, 100) : 100;
+    const gap     = monthly - monthlyTarget;
+    const ok      = gap >= 0;
+    const barEl   = document.getElementById(s.id + '-bar');
+    const metaEl  = document.getElementById(s.id + '-meta');
+    if (barEl)  { barEl.style.width = pct.toFixed(1)+'%'; barEl.style.background = ok ? 'linear-gradient(90deg,#27AE60,#1e8449)' : 'linear-gradient(90deg,#E74C3C,#C0392B)'; }
+    if (metaEl) metaEl.innerHTML = `<span class="${ok?'green':'red'}">$${Math.round(monthly).toLocaleString()}　${ok?'✅':'❌'} ${gap>=0?'+':''}$${Math.round(gap).toLocaleString()}</span><span>${pct.toFixed(1)}%</span>`;
+  });
+}
+
 function sw(name) {
   const tabs = ['overview','cashflow','holdings','clec','debt','edit'];
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -1074,6 +1115,7 @@ async function saveCashToSheets() {
       body: JSON.stringify({
         cash1: c1, cash2: c2, cash3: c3, cashUSD: usd,
         targetBeta: targetBeta,
+        annualTarget: annualTarget,
         positions: POSITIONS.map(p => ({
           sym: p.sym, shares: p.shares, cost: p.cost,
           type: p.type, role: p.role
@@ -1100,6 +1142,12 @@ async function autoLoadCash() {
         targetBeta = parseFloat(savedCash.targetBeta);
         const slider = document.querySelector('input[type="range"]');
         if (slider) slider.value = targetBeta;
+      }
+      // 載入年度目標
+      if (savedCash.annualTarget) {
+        annualTarget = parseFloat(savedCash.annualTarget);
+        const inp = document.getElementById('annualTargetInput');
+        if (inp) { inp.value = annualTarget; updateAnnualTarget(); }
       }
       // 載入持倉
       if (savedCash.positions && savedCash.positions.length > 0) {
@@ -1452,6 +1500,7 @@ async function savePositions() {
       body: JSON.stringify({
         cash1: c1, cash2: c2, cash3: c3, cashUSD: usd,
         targetBeta: targetBeta,
+        annualTarget: annualTarget,
         positions: POSITIONS.map(p => ({
           sym: p.sym, shares: p.shares, cost: p.cost,
           type: p.type, role: p.role
@@ -1481,29 +1530,7 @@ function loadPositionsFromSheets(savedPositions) {
 
 // ===== INIT CHARTS =====
 function initCharts() {
-  const nwData = [
-    {d:'04/18',nw:2784622,pf:27331857},{d:'04/19',nw:2720092,pf:27267327},
-    {d:'04/20',nw:2909833,pf:27457068},{d:'04/21',nw:3192868,pf:27740103},
-    {d:'04/22',nw:3243085,pf:27790320},{d:'04/23',nw:3225675,pf:27772910},
-    {d:'04/24',nw:4116692,pf:28663927},{d:'04/25',nw:4164180,pf:28711415},
-    {d:'04/26',nw:4164180,pf:28711415},{d:'04/27',nw:4611474,pf:29158709},
-    {d:'04/28',nw:4885381,pf:29432616},
-  ];
-  new Chart(document.getElementById('nwChart').getContext('2d'), {
-    type:'line',
-    data:{labels:nwData.map(d=>d.d),datasets:[
-      {label:'組合市值',data:nwData.map(d=>d.pf),borderColor:'#C9A96E',backgroundColor:'rgba(201,169,110,0.07)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#C9A96E',tension:.35,fill:true},
-      {label:'淨資產',data:nwData.map(d=>d.nw),borderColor:'#27AE60',backgroundColor:'rgba(39,174,96,0.07)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#27AE60',tension:.35,fill:true},
-    ]},
-    options:{responsive:true,interaction:{mode:'index',intersect:false},
-      plugins:{legend:{labels:{font:{family:'DM Mono, monospace',size:11},color:'#6B6355',boxWidth:12}},
-        tooltip:{callbacks:{label:c=>` ${c.dataset.label}: $${c.parsed.y.toLocaleString()}`}}},
-      scales:{
-        y:{grid:{color:'rgba(201,169,110,0.1)'},ticks:{font:{family:'DM Mono, monospace',size:10},color:'#6B6355',callback:v=>'$'+(v/1e6).toFixed(1)+'M'}},
-        x:{grid:{display:false},ticks:{font:{family:'DM Mono, monospace',size:10},color:'#6B6355'}}
-      }
-    }
-  });
+  // nwChart 已移除（淨資產走勢取消）
 
   const divDates=['2024/07','2024/09','2024/10','2024/11','2024/12','2025/01','2025/02','2025/03','2025/04','2025/05','2025/06','2025/07','2025/08','2025/09','2025/10','2025/11','2025/12','2026/01','2026/02','2026/03','2026/04'];
   const divVals=[0.6186,0.6022,0.6098,0.6116,0.6216,0.6241,0.6138,0.5867,0.5309,0.6374,0.6282,0.6366,0.6285,0.6411,0.6445,0.6304,0.6412,0.6359,0.6140,0.6089,0.6297];
