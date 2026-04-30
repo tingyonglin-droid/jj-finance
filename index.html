@@ -1032,15 +1032,15 @@ async function saveCashToSheets() {
   try {
     await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      body: JSON.stringify({ cash1: c1, cash2: c2, cash3: c3, cashUSD: usd }),
+      body: JSON.stringify({
+        cash1: c1, cash2: c2, cash3: c3, cashUSD: usd,
+        targetBeta: targetBeta  // 同時存 targetBeta
+      }),
     });
-    // 靜默成功，不顯示訊息
-  } catch(e) {
-    // 靜默失敗
-  }
+  } catch(e) {}
 }
 
-// ===== 開啟時自動載入現金設定 =====
+// ===== 開啟時自動載入現金 + 股價 + targetBeta =====
 async function autoLoadCash() {
   try {
     setStatus('loading', '正在載入現金設定與最新股價…');
@@ -1052,26 +1052,35 @@ async function autoLoadCash() {
       if (savedCash.cash2)   document.getElementById('cash2').value   = savedCash.cash2;
       if (savedCash.cash3)   document.getElementById('cash3').value   = savedCash.cash3;
       if (savedCash.cashUSD) document.getElementById('cashUSD').value = savedCash.cashUSD;
+      // 載入 targetBeta
+      if (savedCash.targetBeta) {
+        targetBeta = parseFloat(savedCash.targetBeta);
+        const slider = document.querySelector('input[type="range"]');
+        if (slider) slider.value = targetBeta;
+      }
     }
     if (exr) document.getElementById('exrInput').value = exr.toFixed(2);
     updateCash();
 
-    // 同時載入股價
+    // 載入股價
     let ok = 0; const fail = [];
     POSITIONS.forEach(p => {
       if (sheetsPrice[p.sym] !== undefined) { prices[p.sym] = sheetsPrice[p.sym]; ok++; }
       else fail.push(p.sym);
     });
-    recalc();
 
-    const now = new Date().toLocaleString('zh-TW', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
-    document.getElementById('lastUpdate').textContent = `上次更新：${now} · 已自動存檔`;
+    // 等 DOM 完全就緒後再渲染（解決持倉明細空白問題）
+    setTimeout(() => {
+      recalc();
+      const now = new Date().toLocaleString('zh-TW', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+      document.getElementById('lastUpdate').textContent = `上次更新：${now} · 自動載入`;
+      if (fail.length === 0) {
+        setStatus('ok', `✅ 開啟時自動更新（${ok} 檔 · 匯率 ${exr?.toFixed(2) || '—'}）· ${now}`);
+      } else {
+        setStatus('ok', `⚠️ ${ok} 檔成功，${fail.length} 檔未取得（${fail.join(', ')}）`);
+      }
+    }, 100);
 
-    if (fail.length === 0) {
-      setStatus('ok', `✅ 開啟時自動更新完成（${ok} 檔 · 匯率 ${exr?.toFixed(2) || '—'}）· ${now}`);
-    } else {
-      setStatus('ok', `⚠️ ${ok} 檔成功，${fail.length} 檔未取得（${fail.join(', ')}）`);
-    }
   } catch(e) {
     setStatus('err', '❌ 自動載入失敗，請按「一鍵更新股價」重試');
   }
@@ -1099,7 +1108,7 @@ async function updateAll() {
 
     recalc();
 
-    // 自動把目前現金設定存回 Sheets
+    // 自動把目前現金設定 + targetBeta 存回 Sheets
     await saveCashToSheets();
 
     const now = new Date().toLocaleString('zh-TW', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
