@@ -1043,8 +1043,10 @@ async function saveCashToSheets() {
 // ===== 開啟時自動載入現金設定 =====
 async function autoLoadCash() {
   try {
-    setStatus('loading', '正在載入上次的現金設定…');
-    const { savedCash, exr } = await fetchAllFromSheets();
+    setStatus('loading', '正在載入現金設定與最新股價…');
+    const { prices: sheetsPrice, exr, savedCash } = await fetchAllFromSheets();
+
+    // 載入現金
     if (savedCash) {
       if (savedCash.cash1)   document.getElementById('cash1').value   = savedCash.cash1;
       if (savedCash.cash2)   document.getElementById('cash2').value   = savedCash.cash2;
@@ -1053,9 +1055,25 @@ async function autoLoadCash() {
     }
     if (exr) document.getElementById('exrInput').value = exr.toFixed(2);
     updateCash();
-    setStatus('ok', '✅ 已載入上次現金設定 · 按「一鍵更新股價」取得最新報價');
+
+    // 同時載入股價
+    let ok = 0; const fail = [];
+    POSITIONS.forEach(p => {
+      if (sheetsPrice[p.sym] !== undefined) { prices[p.sym] = sheetsPrice[p.sym]; ok++; }
+      else fail.push(p.sym);
+    });
+    recalc();
+
+    const now = new Date().toLocaleString('zh-TW', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('lastUpdate').textContent = `上次更新：${now} · 已自動存檔`;
+
+    if (fail.length === 0) {
+      setStatus('ok', `✅ 開啟時自動更新完成（${ok} 檔 · 匯率 ${exr?.toFixed(2) || '—'}）· ${now}`);
+    } else {
+      setStatus('ok', `⚠️ ${ok} 檔成功，${fail.length} 檔未取得（${fail.join(', ')}）`);
+    }
   } catch(e) {
-    setStatus('', '按「一鍵更新股價」開始');
+    setStatus('err', '❌ 自動載入失敗，請按「一鍵更新股價」重試');
   }
 }
 
@@ -1397,7 +1415,7 @@ function toggleGroup(id) {
 
 initCharts();
 updateCash();
-// 開啟時自動從 Sheets 載入現金設定
+// 開啟時自動載入現金 + 股價（一次 API 呼叫完成）
 autoLoadCash();
 
 // ===== 手動輸入股價 =====
