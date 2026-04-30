@@ -178,9 +178,6 @@
     <button class="update-btn" id="updateBtn" onclick="updateAll()">
       <span id="btnIcon">⟳</span> 一鍵更新股價
     </button>
-    <button onclick="saveToFile()" style="display:flex;align-items:center;gap:6px;background:var(--green);color:white;border:none;padding:8px 14px;border-radius:3px;font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.05em;cursor:pointer;transition:background .2s;" onmouseover="this.style.background='#1e8449'" onmouseout="this.style.background='var(--green)'">
-      💾 存檔
-    </button>
     <div class="badge">✅ 換股完成</div>
   </div>
 </div>
@@ -191,7 +188,7 @@
     <span class="ctrl-label">💵 台幣帳戶</span>
     <div class="cash-field">
       <label>遠東活存</label>
-      <input class="cash-input" id="cash1" type="number" value="9072537" oninput="updateCash()">
+      <input class="cash-input" id="cash1" type="number" value="8908483" oninput="updateCash()">
     </div>
     <div class="cash-field">
       <label>台新(貸款)</label>
@@ -206,14 +203,14 @@
     <span class="ctrl-label">🇺🇸 美元現金</span>
     <div class="cash-field">
       <label>永豐美股(USD)</label>
-      <input class="cash-input" id="cashUSD" type="number" value="2718.62" step="0.01" oninput="updateCash()">
+      <input class="cash-input" id="cashUSD" type="number" value="334.78" step="0.01" oninput="updateCash()">
     </div>
   </div>
   <div class="ctrl-section">
     <span class="ctrl-label">💱 匯率</span>
     <div class="cash-field">
       <label>USD/TWD</label>
-      <input class="exr-input" id="exrInput" type="number" value="31.71" step="0.01" oninput="updateCash()">
+      <input class="exr-input" id="exrInput" type="number" value="31.52" step="0.01" oninput="updateCash()">
     </div>
   </div>
   <div class="ctrl-section">
@@ -1019,14 +1016,47 @@ function setStatus(state, msg) {
 // ===== Google Apps Script API 網址 =====
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwnejxU7ADVL3Ulwo2mejdwpH0rZTIVRXIfpYnxBrwUz32z2dV6P19e9Uz0iD5wMkJ1RQ/exec';
 
-// ===== 從 Apps Script 抓取所有股價 =====
+// ===== 從 Apps Script 抓取股價 + 現金設定 =====
 async function fetchAllFromSheets() {
   const url = APPS_SCRIPT_URL + '?t=' + Date.now();
   const res = await fetch(url, { signal: AbortSignal.timeout(20000) });
   if (!res.ok) throw new Error('HTTP ' + res.status);
   const data = await res.json();
   if (data.error) throw new Error(data.error);
-  return { prices: data.prices, exr: data.exr };
+  return { prices: data.prices, exr: data.exr, savedCash: data.savedCash };
+}
+
+// ===== 存現金設定回 Sheets =====
+async function saveCashToSheets() {
+  const { c1, c2, c3, usd } = getCash();
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ cash1: c1, cash2: c2, cash3: c3, cashUSD: usd }),
+    });
+    // 靜默成功，不顯示訊息
+  } catch(e) {
+    // 靜默失敗
+  }
+}
+
+// ===== 開啟時自動載入現金設定 =====
+async function autoLoadCash() {
+  try {
+    setStatus('loading', '正在載入上次的現金設定…');
+    const { savedCash, exr } = await fetchAllFromSheets();
+    if (savedCash) {
+      if (savedCash.cash1)   document.getElementById('cash1').value   = savedCash.cash1;
+      if (savedCash.cash2)   document.getElementById('cash2').value   = savedCash.cash2;
+      if (savedCash.cash3)   document.getElementById('cash3').value   = savedCash.cash3;
+      if (savedCash.cashUSD) document.getElementById('cashUSD').value = savedCash.cashUSD;
+    }
+    if (exr) document.getElementById('exrInput').value = exr.toFixed(2);
+    updateCash();
+    setStatus('ok', '✅ 已載入上次現金設定 · 按「一鍵更新股價」取得最新報價');
+  } catch(e) {
+    setStatus('', '按「一鍵更新股價」開始');
+  }
 }
 
 // ===== UPDATE ALL（從 Google Sheets）=====
@@ -1037,30 +1067,34 @@ async function updateAll() {
   setStatus('loading', '正在從 Google Apps Script 讀取最新股價，約 5-10 秒…');
 
   try {
-    const { prices: sheetsPrice, exr: sheetsExr } = await fetchAllFromSheets();
+    const { prices: sheetsPrice, exr: sheetsExr, savedCash } = await fetchAllFromSheets();
 
+    // 載入股價
     let ok = 0; const fail = [];
     POSITIONS.forEach(p => {
       if (sheetsPrice[p.sym] !== undefined) { prices[p.sym] = sheetsPrice[p.sym]; ok++; }
       else fail.push(p.sym);
     });
 
-    // 若試算表有回傳匯率，自動更新匯率欄位
+    // 更新匯率
     if (sheetsExr) document.getElementById('exrInput').value = sheetsExr.toFixed(2);
 
     recalc();
 
+    // 自動把目前現金設定存回 Sheets
+    await saveCashToSheets();
+
     const now = new Date().toLocaleString('zh-TW', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
-    document.getElementById('lastUpdate').textContent = `上次更新：${now} · 資料來源：Google Apps Script`;
+    document.getElementById('lastUpdate').textContent = `上次更新：${now} · 已自動存檔`;
 
     if (fail.length === 0) {
-      setStatus('ok', `✅ 全部 ${ok} 檔更新成功${sheetsExr ? '（匯率 '+sheetsExr.toFixed(2)+'）' : ''} · ${now}`);
+      setStatus('ok', `✅ 全部 ${ok} 檔更新成功（匯率 ${sheetsExr?.toFixed(2) || '—'}）· 現金已自動存檔 · ${now}`);
     } else {
-      setStatus('ok', `⚠️ ${ok} 檔成功，${fail.length} 檔未取得（${fail.join(', ')}）· 顯示快照數據`);
+      setStatus('ok', `⚠️ ${ok} 檔成功，${fail.length} 檔未取得（${fail.join(', ')}）· 現金已自動存檔`);
     }
 
   } catch (err) {
-    setStatus('err', `❌ 無法讀取 Apps Script：${err.message} · 請確認部署設定「所有人可存取」`);
+    setStatus('err', `❌ 無法讀取 Apps Script：${err.message}`);
     showManualInput(POSITIONS.map(p => p.sym));
   }
 
@@ -1197,18 +1231,7 @@ function saveToFile() {
       html = html.replace(/(id="cashUSD"[^>]*?)value="[^"]*"/, `$1value="${cashUSDVal}"`);
       html = html.replace(/(id="exrInput"[^>]*?)value="[^"]*"/, `$1value="${exrVal}"`);
 
-      // 2. 注入股價快照（在 <script>
-(function(){
-  var _p = {"QQQI":53.86,"QLD":79.64,"QQQ":661.57,"SMH":499.58,"SHNY":12.39,"NVDA":209.25,"TSLL":11.93,"TSLA":372.8,"URA":52.89,"ITA":213.14,"XLU":45.68,"UFO":49.61,"IBIT":42.75,"00685L":224.15,"00631L":28.61,"00981A":28.28,"00994A":16.82,"00992A":17.38,"00991A":16.8};
-  window.addEventListener('DOMContentLoaded', function(){
-    if(typeof prices !== 'undefined' && Object.keys(_p).length > 0){
-      Object.assign(prices, _p);
-      if(typeof recalc === 'function') recalc();
-    }
-  });
-})();
-</script>
-</body> 前插入）
+      // 2. 注入股價快照（在 </body> 前插入）
       const inject = `<script>
 (function(){
   var _p = ${pricesJSON};
@@ -1374,6 +1397,8 @@ function toggleGroup(id) {
 
 initCharts();
 updateCash();
+// 開啟時自動從 Sheets 載入現金設定
+autoLoadCash();
 
 // ===== 手動輸入股價 =====
 function showManualInput(failedSyms) {
