@@ -228,10 +228,10 @@
 <div class="tabs">
   <div class="tab active" onclick="sw('overview')">📊 資產總覽</div>
   <div class="tab" onclick="sw('cashflow')">💰 現金流規劃</div>
-  <div class="tab" onclick="sw('holdings')">📋 持倉明細</div>
   <div class="tab" onclick="sw('clec')">⚖️ CLEC策略</div>
-  <div class="tab" onclick="sw('debt')">🏦 負債管理</div>
+  <div class="tab" onclick="sw('holdings')">📋 持倉明細</div>
   <div class="tab" onclick="sw('edit')">✏️ 編輯持倉</div>
+  <div class="tab" onclick="sw('debt')">🏦 負債管理</div>
 </div>
 
 <!-- ===== PAGE 1: 總覽 ===== -->
@@ -390,34 +390,6 @@
         <span>📈 最高: <strong class="green">$0.6445</strong>(2025/10)</span>
         <span>🔵 最新: <strong class="blue">$0.6297</strong>(2026/04)</span>
         <span>📈 年化殖利率: <strong id="cfYield" style="color:var(--gold-dark);">—</strong></span>
-      </div>
-    </div>
-
-    <!-- 還款結構 -->
-    <div class="card">
-      <div class="clabel">還款結構三階段</div>
-      <div style="display:grid;gap:8px;">
-        <div style="border:1px solid var(--border);border-radius:3px;overflow:hidden;">
-          <div style="background:var(--paper-dark);padding:6px 11px;font-family:'DM Mono',monospace;font-size:0.62rem;display:flex;justify-content:space-between;"><span>現在→2029.02</span><span style="background:#FFEBE8;color:#C0392B;padding:1px 6px;border-radius:8px;font-size:0.57rem;">寬限+車貸</span></div>
-          <div style="padding:8px 11px;font-family:'DM Mono',monospace;font-size:0.69rem;line-height:2;">
-            <div>房貸2: $34,400</div><div>房貸1: $26,774</div><div style="color:#E67E22;">車貸:  $47,222</div>
-          </div>
-          <div style="padding:4px 11px;font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);border-top:1px solid var(--border);">月還款 $108,396</div>
-        </div>
-        <div style="border:1px solid var(--border);border-radius:3px;overflow:hidden;">
-          <div style="background:var(--paper-dark);padding:6px 11px;font-family:'DM Mono',monospace;font-size:0.62rem;display:flex;justify-content:space-between;"><span>2029.02→05</span><span style="background:#E8F5E9;color:#27AE60;padding:1px 6px;border-radius:8px;font-size:0.57rem;">甜蜜3個月</span></div>
-          <div style="padding:8px 11px;font-family:'DM Mono',monospace;font-size:0.69rem;line-height:2;">
-            <div>房貸2: $34,400</div><div>房貸1: $26,774</div><div style="color:var(--green);">車貸: $0 ✓</div>
-          </div>
-          <div style="padding:4px 11px;font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--green);border-top:1px solid var(--border);">月還款 $61,174 ✅</div>
-        </div>
-        <div style="border:1px solid var(--border);border-radius:3px;overflow:hidden;">
-          <div style="background:var(--paper-dark);padding:6px 11px;font-family:'DM Mono',monospace;font-size:0.62rem;display:flex;justify-content:space-between;"><span>2029.05以後</span><span style="background:#FFF3E0;color:#E67E22;padding:1px 6px;border-radius:8px;font-size:0.57rem;">房貸2跳升</span></div>
-          <div style="padding:8px 11px;font-family:'DM Mono',monospace;font-size:0.69rem;line-height:2;">
-            <div style="color:#E67E22;">房貸2: $72,182 ↑</div><div>房貸1: $26,774</div><div style="color:var(--green);">車貸: $0 ✓</div>
-          </div>
-          <div style="padding:4px 11px;font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);border-top:1px solid var(--border);">月還款 $98,956</div>
-        </div>
       </div>
     </div>
 
@@ -1159,7 +1131,7 @@ function updateCoverageCards() {
 }
 
 function sw(name) {
-  const tabs = ['overview','cashflow','holdings','clec','debt','edit'];
+  const tabs = ['overview','cashflow','clec','holdings','edit','debt'];
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab')[tabs.indexOf(name)].classList.add('active');
