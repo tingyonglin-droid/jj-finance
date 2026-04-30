@@ -191,7 +191,7 @@
     <span class="ctrl-label">💵 台幣帳戶</span>
     <div class="cash-field">
       <label>遠東活存</label>
-      <input class="cash-input" id="cash1" type="number" value="8908483" oninput="updateCash()">
+      <input class="cash-input" id="cash1" type="number" value="9072537" oninput="updateCash()">
     </div>
     <div class="cash-field">
       <label>台新(貸款)</label>
@@ -206,14 +206,14 @@
     <span class="ctrl-label">🇺🇸 美元現金</span>
     <div class="cash-field">
       <label>永豐美股(USD)</label>
-      <input class="cash-input" id="cashUSD" type="number" value="334.78" step="0.01" oninput="updateCash()">
+      <input class="cash-input" id="cashUSD" type="number" value="2718.62" step="0.01" oninput="updateCash()">
     </div>
   </div>
   <div class="ctrl-section">
     <span class="ctrl-label">💱 匯率</span>
     <div class="cash-field">
       <label>USD/TWD</label>
-      <input class="exr-input" id="exrInput" type="number" value="31.52" step="0.01" oninput="updateCash()">
+      <input class="exr-input" id="exrInput" type="number" value="31.71" step="0.01" oninput="updateCash()">
     </div>
   </div>
   <div class="ctrl-section">
@@ -1197,7 +1197,18 @@ function saveToFile() {
       html = html.replace(/(id="cashUSD"[^>]*?)value="[^"]*"/, `$1value="${cashUSDVal}"`);
       html = html.replace(/(id="exrInput"[^>]*?)value="[^"]*"/, `$1value="${exrVal}"`);
 
-      // 2. 注入股價快照（在 </body> 前插入）
+      // 2. 注入股價快照（在 <script>
+(function(){
+  var _p = {"QQQI":53.86,"QLD":79.64,"QQQ":661.57,"SMH":499.58,"SHNY":12.39,"NVDA":209.25,"TSLL":11.93,"TSLA":372.8,"URA":52.89,"ITA":213.14,"XLU":45.68,"UFO":49.61,"IBIT":42.75,"00685L":224.15,"00631L":28.61,"00981A":28.28,"00994A":16.82,"00992A":17.38,"00991A":16.8};
+  window.addEventListener('DOMContentLoaded', function(){
+    if(typeof prices !== 'undefined' && Object.keys(_p).length > 0){
+      Object.assign(prices, _p);
+      if(typeof recalc === 'function') recalc();
+    }
+  });
+})();
+</script>
+</body> 前插入）
       const inject = `<script>
 (function(){
   var _p = ${pricesJSON};
