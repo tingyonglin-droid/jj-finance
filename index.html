@@ -240,11 +240,16 @@
 
     <div class="card span3">
       <div class="clabel">淨資產總覽</div>
-      <div style="display:flex;align-items:baseline;gap:20px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
         <div>
           <div class="bignum gold" id="netWorthDisplay">$28,880,007</div>
           <div class="sublabel" id="netWorthSub">總資產 − 負債 $24,547,235 ｜ 財務槓桿 · 匯率</div>
         </div>
+        <button onclick="recordMonthlyNetWorth()" id="recordBtn"
+          style="display:flex;align-items:center;gap:7px;background:var(--gold-dark);color:white;border:none;padding:9px 16px;border-radius:3px;font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;cursor:pointer;transition:background .2s;"
+          onmouseover="this.style.background='#6b4f10'" onmouseout="this.style.background='var(--gold-dark)'">
+          📌 記錄本月淨資產
+        </button>
       </div>
       <div class="statrow" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr;">
         <div class="stat"><div class="val blue" id="cashTotalStat">$10,884,173</div><div class="lbl">💵 現金合計</div></div>
@@ -270,6 +275,21 @@
       <div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap;">
         <div style="flex:0 0 220px;"><canvas id="pieChart" height="220"></canvas></div>
         <div id="pieLegend" style="flex:1;font-family:'DM Mono',monospace;font-size:0.68rem;line-height:2.4;min-width:160px;"></div>
+      </div>
+    </div>
+
+    <!-- 月底淨資產走勢 -->
+    <div class="card span3">
+      <div class="clabel">月底淨資產走勢</div>
+      <div style="position:relative;">
+        <canvas id="nwMonthChart" height="120"></canvas>
+        <div id="nwMonthEmpty" style="display:none;text-align:center;padding:30px;font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);">
+          尚無記錄 · 按「📌 記錄本月淨資產」開始追蹤
+        </div>
+      </div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);margin-top:6px;display:flex;justify-content:space-between;align-items:center;">
+        <span id="nwMonthStats"></span>
+        <span id="nwMonthCount" style="color:var(--muted);"></span>
       </div>
     </div>
 
@@ -1208,6 +1228,10 @@ async function autoLoadCash() {
       if (savedCash.positions && savedCash.positions.length > 0) {
         loadPositionsFromSheets(savedCash.positions);
       }
+      // 載入月底淨資產記錄
+      if (savedCash.monthlyNW && savedCash.monthlyNW.length > 0) {
+        monthlyNW = savedCash.monthlyNW;
+      }
     }
     if (exr) document.getElementById('exrInput').value = exr.toFixed(2);
     updateCash();
@@ -1219,9 +1243,10 @@ async function autoLoadCash() {
       else fail.push(p.sym);
     });
 
-    // 等 DOM 完全就緒後再渲染（解決持倉明細空白問題）
+    // 等 DOM 完全就緒後再渲染
     setTimeout(() => {
       recalc();
+      renderNWMonthChart();
       const now = new Date().toLocaleString('zh-TW', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
       document.getElementById('lastUpdate').textContent = `上次更新：${now} · 自動載入`;
       if (fail.length === 0) {
@@ -1593,6 +1618,151 @@ function loadPositionsFromSheets(savedPositions) {
     const inf = inferTag(type, p.role);
     return { ...p, type, tag: inf.tag, tagLabel: inf.tagLabel };
   });
+}
+
+// ===== 月底淨資產記錄 =====
+let monthlyNW = []; // [{month:'2026-04', nw:28880007}, ...]
+let nwMonthChart = null;
+
+async function recordMonthlyNetWorth() {
+  const btn = document.getElementById('recordBtn');
+  const nwEl = document.getElementById('netWorthDisplay');
+  const nwText = nwEl ? nwEl.textContent.replace(/[$,]/g,'') : '0';
+  const nw = parseInt(nwText);
+  if (!nw || nw <= 0) {
+    alert('請先按「一鍵更新股價」計算最新淨資產後再記錄');
+    return;
+  }
+
+  const now = new Date();
+  const month = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+
+  // 確認是否覆蓋
+  const existing = monthlyNW.find(r => r.month === month);
+  if (existing) {
+    if (!confirm(`${month} 已有紀錄（$${existing.nw.toLocaleString()}），確定要覆蓋？`)) return;
+    existing.nw = nw;
+  } else {
+    monthlyNW.push({ month, nw });
+    monthlyNW.sort((a,b) => a.month.localeCompare(b.month));
+  }
+
+  btn.textContent = '儲存中…';
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        cash1: parseFloat(document.getElementById('cash1').value)||0,
+        cash2: parseFloat(document.getElementById('cash2').value)||0,
+        cash3: parseFloat(document.getElementById('cash3').value)||0,
+        cashUSD: parseFloat(document.getElementById('cashUSD').value)||0,
+        targetBeta, annualTarget,
+        positions: POSITIONS.map(p=>({sym:p.sym,shares:p.shares,cost:p.cost,type:p.type,role:p.role})),
+        monthlyNW: monthlyNW
+      }),
+    });
+    setStatus('ok', `✅ 已記錄 ${month} 淨資產 $${nw.toLocaleString()}`);
+  } catch(e) {
+    setStatus('err', '❌ 記錄失敗：' + e.message);
+  }
+  btn.textContent = '📌 記錄本月淨資產';
+  renderNWMonthChart();
+}
+
+function renderNWMonthChart() {
+  const emptyEl = document.getElementById('nwMonthEmpty');
+  const statsEl = document.getElementById('nwMonthStats');
+  const countEl = document.getElementById('nwMonthCount');
+
+  if (!monthlyNW.length) {
+    if (emptyEl) emptyEl.style.display = 'block';
+    if (nwMonthChart) { nwMonthChart.data.labels=[]; nwMonthChart.data.datasets[0].data=[]; nwMonthChart.update(); }
+    return;
+  }
+  if (emptyEl) emptyEl.style.display = 'none';
+
+  const labels = monthlyNW.map(r => r.month);
+  const data   = monthlyNW.map(r => r.nw);
+
+  // 月變化
+  const latest = data[data.length-1];
+  const prev   = data.length > 1 ? data[data.length-2] : null;
+  const change = prev !== null ? latest - prev : null;
+  const changeStr = change !== null
+    ? `${change>=0?'▲':'▼'} $${Math.abs(change).toLocaleString()} vs 上月`
+    : '';
+  const firstStr = data.length > 1 ? `退休後累計 ${change>=0?'+':''} $${(latest-data[0]).toLocaleString()}` : '';
+
+  if (statsEl) {
+    statsEl.innerHTML = `<span style="color:${change>=0?'var(--green)':'var(--red)'};">${changeStr}</span>${firstStr ? ' ｜ ' + firstStr : ''}`;
+  }
+  if (countEl) countEl.textContent = `共 ${monthlyNW.length} 個月紀錄`;
+
+  // 顏色：比前一個月高 = 綠，低 = 紅
+  const barColors = data.map((v, i) => {
+    if (i === 0) return 'rgba(201,169,110,0.8)';
+    return v >= data[i-1] ? 'rgba(39,174,96,0.8)' : 'rgba(192,57,43,0.8)';
+  });
+  const borderColors = data.map((v, i) => {
+    if (i === 0) return '#8B6914';
+    return v >= data[i-1] ? '#1e8449' : '#922b21';
+  });
+
+  if (nwMonthChart) {
+    nwMonthChart.data.labels = labels;
+    nwMonthChart.data.datasets[0].data = data;
+    nwMonthChart.data.datasets[0].backgroundColor = barColors;
+    nwMonthChart.data.datasets[0].borderColor = borderColors;
+    nwMonthChart.update();
+  } else {
+    const ctx = document.getElementById('nwMonthChart').getContext('2d');
+    nwMonthChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: '月底淨資產',
+          data,
+          backgroundColor: barColors,
+          borderColor: borderColors,
+          borderWidth: 1,
+          borderRadius: 3,
+        }]
+      },
+      options: {
+        responsive: true,
+        interaction: { mode:'index', intersect:false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: c => ` 淨資產：$${c.parsed.y.toLocaleString()}`,
+              afterLabel: (c) => {
+                const i = c.dataIndex;
+                if (i === 0) return '';
+                const diff = c.parsed.y - data[i-1];
+                return ` ${diff>=0?'▲':'▼'} $${Math.abs(diff).toLocaleString()} vs 上月`;
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            grid: { color:'rgba(201,169,110,0.1)' },
+            ticks: {
+              font:{ family:'DM Mono, monospace', size:10 },
+              color:'#6B6355',
+              callback: v => '$'+(v/1e6).toFixed(1)+'M'
+            }
+          },
+          x: {
+            grid: { display:false },
+            ticks: { font:{ family:'DM Mono, monospace', size:10 }, color:'#6B6355' }
+          }
+        }
+      }
+    });
+  }
 }
 
 // ===== INIT CHARTS =====
