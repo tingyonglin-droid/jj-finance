@@ -280,44 +280,81 @@
 <div class="page" id="page-cashflow">
   <div class="grid g3">
 
-    <div class="card ag span3">
-      <div class="clabel">現金流目標</div>
-      <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
-        <div>
-          <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
-            <div class="bignum green" id="annualTargetDisplay">$210萬/年</div>
-            <div style="display:flex;align-items:center;gap:6px;">
-              <input type="number" id="annualTargetInput" value="2100000" step="100000"
-                style="width:120px;border:1px solid rgba(39,174,96,0.4);border-radius:3px;padding:5px 9px;font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--charcoal);background:white;text-align:right;"
-                oninput="updateAnnualTarget()">
-              <span style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);">TWD/年</span>
-            </div>
-          </div>
-          <div class="sublabel" id="annualTargetSub">= 月領 $175,000 ｜ 全由QQQI配息支應</div>
+    <!-- 目標設定 -->
+    <div class="card ag">
+      <div class="clabel">現金流目標（可手動調整）</div>
+      <div style="margin-bottom:14px;">
+        <div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);margin-bottom:5px;">年領目標</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="number" id="annualTargetInput" value="2100000" step="100000"
+            style="width:140px;border:1px solid rgba(39,174,96,0.4);border-radius:3px;padding:6px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--charcoal);background:white;text-align:right;"
+            oninput="updateAnnualTarget()">
+          <span style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);">TWD</span>
+          <span class="bignum green" id="annualTargetDisplay" style="font-size:1.4rem;">$210萬</span>
         </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <div class="stat" style="min-width:105px;"><div class="val" style="color:var(--charcoal);" id="monthlyTargetStat">$175,000</div><div class="lbl">月領目標</div></div>
-          <div class="stat" style="min-width:105px;"><div class="val green" id="qqqiSharesStat">9,302股</div><div class="lbl">QQQI持股</div></div>
-          <div class="stat" style="min-width:105px;"><div class="val gold" id="cfQqqiPrice">—</div><div class="lbl">QQQI現價(USD)</div></div>
-          <div class="stat" style="min-width:105px;"><div class="val blue">14.04%</div><div class="lbl">年化殖利率</div></div>
-          <div class="stat" style="min-width:105px;"><div class="val green" id="cfMonthly">$185,150</div><div class="lbl">均值月配(TWD)</div></div>
+      </div>
+
+      <div class="div"></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+        <div class="stat">
+          <div style="font-family:'DM Mono',monospace;font-size:0.59rem;color:var(--muted);margin-bottom:5px;">月領（預扣30%後）</div>
+          <div class="val green" id="t-monthly" style="font-size:0.85rem;">$12,250</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);margin-top:3px;">= 年領×70%÷12</div>
+        </div>
+        <div class="stat">
+          <div style="font-family:'DM Mono',monospace;font-size:0.59rem;color:var(--muted);margin-bottom:5px;">預扣稅（月）</div>
+          <div class="val" id="t-tax-monthly" style="font-size:0.85rem;color:var(--charcoal);">$5,250</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);margin-top:3px;">= 年領×30%÷12</div>
+        </div>
+        <div class="stat">
+          <div style="font-family:'DM Mono',monospace;font-size:0.59rem;color:var(--muted);margin-bottom:5px;">4月退稅（全年30%）</div>
+          <div class="val gold" id="t-tax-refund" style="font-size:0.85rem;">$630,000</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);margin-top:3px;">= 年領×30%</div>
         </div>
       </div>
     </div>
 
-    <div class="card span2">
-      <div class="clabel">QQQI 歷史配息（實際數據）</div>
-      <canvas id="divChart" height="155"></canvas>
-      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);margin-top:6px;display:flex;gap:14px;flex-wrap:wrap;">
-        <span>📊 近12月均值: <strong style="color:var(--charcoal);">$0.6314</strong></span>
-        <span>📉 最低: <strong class="red">$0.5309</strong>(2025/04)</span>
-        <span>📈 最高: <strong class="green">$0.6445</strong>(2025/10)</span>
-        <span>🔵 最新: <strong class="blue">$0.6297</strong>(2026/04)</span>
+    <!-- 目前配置 -->
+    <div class="card ab">
+      <div class="clabel">目前配置（QQQI 自動計算）</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+        <div class="stat">
+          <div style="font-family:'DM Mono',monospace;font-size:0.59rem;color:var(--muted);margin-bottom:4px;">QQQI 現價</div>
+          <div class="val blue" id="cfQqqiPrice" style="font-size:0.85rem;">—</div>
+        </div>
+        <div class="stat">
+          <div style="font-family:'DM Mono',monospace;font-size:0.59rem;color:var(--muted);margin-bottom:4px;">持股數量</div>
+          <div class="val blue" id="qqqiSharesStat" style="font-size:0.85rem;">9,302股</div>
+        </div>
       </div>
+
+      <div class="div"></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+        <div class="stat">
+          <div style="font-family:'DM Mono',monospace;font-size:0.59rem;color:var(--muted);margin-bottom:5px;">近12月均值年領</div>
+          <div class="val green" id="a-annual" style="font-size:0.85rem;">$185,150×12</div>
+        </div>
+        <div class="stat">
+          <div style="font-family:'DM Mono',monospace;font-size:0.59rem;color:var(--muted);margin-bottom:5px;">月領（預扣30%後）</div>
+          <div class="val green" id="a-monthly" style="font-size:0.85rem;">—</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);margin-top:3px;">= 月配息×70%</div>
+        </div>
+        <div class="stat">
+          <div style="font-family:'DM Mono',monospace;font-size:0.59rem;color:var(--muted);margin-bottom:5px;">4月退稅（全年30%）</div>
+          <div class="val gold" id="a-tax-refund" style="font-size:0.85rem;">—</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);margin-top:3px;">= 年配息×30%</div>
+        </div>
+      </div>
+
+      <div class="info-box ib" style="margin-top:12px;" id="cov-summary">計算中…</div>
     </div>
 
+    <!-- 配息覆蓋率 -->
     <div class="card">
-      <div class="clabel">配息覆蓋率</div>
+      <div class="clabel">配息覆蓋率（vs 年領目標）</div>
       <div id="cov-target-label" style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);margin-bottom:10px;">目標 $175,000/月</div>
       <div class="cf-scenario">
         <div class="cf-header"><span class="cf-label" id="cov-low-lbl">⚠️ 極端低 $0.5309</span></div>
@@ -329,56 +366,61 @@
       <div class="cf-scenario">
         <div class="cf-header"><span class="cf-label">✅ 近12月均值 $0.6314</span></div>
         <div class="bar-bg"><div class="bar-fill" id="cov-avg-bar" style="width:100%;background:linear-gradient(90deg,#27AE60,#1e8449);"></div></div>
-        <div class="cf-meta" id="cov-avg-meta"><span class="green">$185,150　✅ +$10,150</span><span>105.8%</span></div>
+        <div class="cf-meta" id="cov-avg-meta"></div>
       </div>
       <div class="cf-scenario" style="margin-top:10px;">
         <div class="cf-header"><span class="cf-label">✅ 最新 $0.6297（2026/04）</span></div>
         <div class="bar-bg"><div class="bar-fill" id="cov-now-bar" style="width:100%;background:linear-gradient(90deg,#2473B5,#1a5a8f);"></div></div>
-        <div class="cf-meta" id="cov-now-meta"><span class="blue">$184,651　✅ +$9,651</span><span>105.5%</span></div>
+        <div class="cf-meta" id="cov-now-meta"></div>
       </div>
       <div class="cf-scenario" style="margin-top:10px;">
         <div class="cf-header"><span class="cf-label">✅ 歷史最高 $0.6445</span></div>
         <div class="bar-bg"><div class="bar-fill" id="cov-high-bar" style="width:100%;background:linear-gradient(90deg,#1a8a45,#145e30);"></div></div>
-        <div class="cf-meta" id="cov-high-meta"><span class="green">$189,192　✅ +$14,192</span><span>108.1%</span></div>
+        <div class="cf-meta" id="cov-high-meta"></div>
       </div>
-      <div class="info-box ig" id="cov-summary">✅ 均值覆蓋率 105.8%</div>
     </div>
 
+    <!-- QQQI 歷史配息 -->
     <div class="card span2">
-      <div class="clabel">還款結構三階段（月需求均 $175,000）</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+      <div class="clabel">QQQI 歷史配息（實際數據）</div>
+      <canvas id="divChart" height="150"></canvas>
+      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);margin-top:8px;display:flex;gap:14px;flex-wrap:wrap;">
+        <span>📊 近12月均值: <strong style="color:var(--charcoal);">$0.6314/股</strong></span>
+        <span>📉 最低: <strong class="red">$0.5309</strong>(2025/04)</span>
+        <span>📈 最高: <strong class="green">$0.6445</strong>(2025/10)</span>
+        <span>🔵 最新: <strong class="blue">$0.6297</strong>(2026/04)</span>
+        <span>📈 年化殖利率: <strong id="cfYield" style="color:var(--gold-dark);">—</strong></span>
+      </div>
+    </div>
+
+    <!-- 還款結構 -->
+    <div class="card">
+      <div class="clabel">還款結構三階段</div>
+      <div style="display:grid;gap:8px;">
         <div style="border:1px solid var(--border);border-radius:3px;overflow:hidden;">
-          <div style="background:var(--paper-dark);padding:7px 11px;font-family:'DM Mono',monospace;font-size:0.63rem;display:flex;justify-content:space-between;"><span>現在→2029.02</span><span style="background:#FFEBE8;color:#C0392B;padding:1px 6px;border-radius:8px;font-size:0.58rem;">寬限+車貸</span></div>
-          <div style="padding:9px 11px;font-family:'DM Mono',monospace;font-size:0.7rem;line-height:2;">
+          <div style="background:var(--paper-dark);padding:6px 11px;font-family:'DM Mono',monospace;font-size:0.62rem;display:flex;justify-content:space-between;"><span>現在→2029.02</span><span style="background:#FFEBE8;color:#C0392B;padding:1px 6px;border-radius:8px;font-size:0.57rem;">寬限+車貸</span></div>
+          <div style="padding:8px 11px;font-family:'DM Mono',monospace;font-size:0.69rem;line-height:2;">
             <div>房貸2: $34,400</div><div>房貸1: $26,774</div><div style="color:#E67E22;">車貸:  $47,222</div>
           </div>
-          <div style="padding:5px 11px;font-family:'DM Mono',monospace;font-size:0.61rem;color:var(--muted);border-top:1px solid var(--border);">還款$108,396 · 生活費$66,604</div>
+          <div style="padding:4px 11px;font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);border-top:1px solid var(--border);">月還款 $108,396</div>
         </div>
         <div style="border:1px solid var(--border);border-radius:3px;overflow:hidden;">
-          <div style="background:var(--paper-dark);padding:7px 11px;font-family:'DM Mono',monospace;font-size:0.63rem;display:flex;justify-content:space-between;"><span>2029.02→05</span><span style="background:#E8F5E9;color:#27AE60;padding:1px 6px;border-radius:8px;font-size:0.58rem;">甜蜜3個月</span></div>
-          <div style="padding:9px 11px;font-family:'DM Mono',monospace;font-size:0.7rem;line-height:2;">
-            <div>房貸2: $34,400</div><div>房貸1: $26,774</div><div style="color:var(--green);">車貸:  $0 ✓</div>
+          <div style="background:var(--paper-dark);padding:6px 11px;font-family:'DM Mono',monospace;font-size:0.62rem;display:flex;justify-content:space-between;"><span>2029.02→05</span><span style="background:#E8F5E9;color:#27AE60;padding:1px 6px;border-radius:8px;font-size:0.57rem;">甜蜜3個月</span></div>
+          <div style="padding:8px 11px;font-family:'DM Mono',monospace;font-size:0.69rem;line-height:2;">
+            <div>房貸2: $34,400</div><div>房貸1: $26,774</div><div style="color:var(--green);">車貸: $0 ✓</div>
           </div>
-          <div style="padding:5px 11px;font-family:'DM Mono',monospace;font-size:0.61rem;color:var(--green);border-top:1px solid var(--border);">還款$61,174 · 生活費$113,826 ✅</div>
+          <div style="padding:4px 11px;font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--green);border-top:1px solid var(--border);">月還款 $61,174 ✅</div>
         </div>
         <div style="border:1px solid var(--border);border-radius:3px;overflow:hidden;">
-          <div style="background:var(--paper-dark);padding:7px 11px;font-family:'DM Mono',monospace;font-size:0.63rem;display:flex;justify-content:space-between;"><span>2029.05以後</span><span style="background:#FFF3E0;color:#E67E22;padding:1px 6px;border-radius:8px;font-size:0.58rem;">房貸2跳升</span></div>
-          <div style="padding:9px 11px;font-family:'DM Mono',monospace;font-size:0.7rem;line-height:2;">
-            <div style="color:#E67E22;">房貸2: $72,182 ↑</div><div>房貸1: $26,774</div><div style="color:var(--green);">車貸:  $0 ✓</div>
+          <div style="background:var(--paper-dark);padding:6px 11px;font-family:'DM Mono',monospace;font-size:0.62rem;display:flex;justify-content:space-between;"><span>2029.05以後</span><span style="background:#FFF3E0;color:#E67E22;padding:1px 6px;border-radius:8px;font-size:0.57rem;">房貸2跳升</span></div>
+          <div style="padding:8px 11px;font-family:'DM Mono',monospace;font-size:0.69rem;line-height:2;">
+            <div style="color:#E67E22;">房貸2: $72,182 ↑</div><div>房貸1: $26,774</div><div style="color:var(--green);">車貸: $0 ✓</div>
           </div>
-          <div style="padding:5px 11px;font-family:'DM Mono',monospace;font-size:0.61rem;color:var(--muted);border-top:1px solid var(--border);">還款$98,956 · 生活費$76,044</div>
+          <div style="padding:4px 11px;font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);border-top:1px solid var(--border);">月還款 $98,956</div>
         </div>
       </div>
-      <div class="info-box ib" style="margin-top:12px;">ℹ️ 三個階段月需求均為 $175,000，還款結構只影響生活費分配比例</div>
     </div>
 
-    <div class="card">
-      <div class="clabel">長期QQQI成長路徑</div>
-      <div class="check-item" style="border:none;padding:5px 0;"><div class="ci ci-plan">1</div><div class="check-text"><strong>CLEC再平衡→超額現金轉QQQI</strong><span class="check-sub">槓桿漲多賣出，超額現金買QQQI</span></div></div>
-      <div class="check-item" style="border:none;padding:5px 0;"><div class="ci ci-plan">2</div><div class="check-text"><strong>TSLL出清後部分轉QQQI</strong><span class="check-sub">等TSLA回前高，半→TSLA，半→現金</span></div></div>
-      <div class="check-item" style="border:none;padding:5px 0;"><div class="ci ci-plan">3</div><div class="check-text"><strong>QQQ/SMH備選換QQQI</strong><span class="check-sub">需強化保守覆蓋率時再評估</span></div></div>
-      <div class="info-box io">目標：推進QQQI至11,000+股，保守情境也全覆蓋</div>
-    </div>
   </div>
 </div>
 
@@ -848,12 +890,10 @@ function updateCash() {
   document.getElementById('dcTotal').textContent = fmt(total);
   document.getElementById('exrStat').textContent = exr.toFixed(2);
 
-  // QQQI monthly
-  const monthly = Math.round(9302 * QQQI_AVG_DIV * exr);
-  document.getElementById('cfMonthly').textContent = fmt(monthly);
-
   // 同步更新 CLEC 頁面
   updateCLEC();
+  // 同步更新現金流頁面
+  updateCoverageCards();
 
   if (Object.keys(prices).length > 0) recalc();
 }
@@ -883,6 +923,7 @@ function recalc() {
   if (prices['QQQI']) document.getElementById('cfQqqiPrice').textContent = '$' + prices['QQQI'].toFixed(2);
 
   updateCLEC();
+  updateCoverageCards();
   renderHoldings();
   updatePie(investTWD, cashTWD);
 }
@@ -1033,46 +1074,88 @@ function setTargetBeta(val) {
 }
 // ===== 年領目標（可手動修改）=====
 let annualTarget = 2100000;
+const TAX_RATE = 0.30; // 預扣稅率30%
 
 function updateAnnualTarget() {
   const val = parseFloat(document.getElementById('annualTargetInput').value) || 2100000;
   annualTarget = val;
-  const monthly = Math.round(val / 12);
-  const wan     = (val / 10000).toFixed(0);
+  const wan = (val / 10000).toFixed(0);
 
-  document.getElementById('annualTargetDisplay').textContent = `$${wan}萬/年`;
-  document.getElementById('annualTargetSub').textContent     = `= 月領 $${monthly.toLocaleString()} ｜ 全由QQQI配息支應`;
-  document.getElementById('monthlyTargetStat').textContent   = '$' + monthly.toLocaleString();
-  updateCoverageCards(monthly);
+  // 目標欄
+  const monthlyAfterTax = Math.round(val * (1 - TAX_RATE) / 12);
+  const monthlyTax      = Math.round(val * TAX_RATE / 12);
+  const annualTaxRefund = Math.round(val * TAX_RATE);
+
+  const el = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
+  el('annualTargetDisplay', `$${wan}萬`);
+  el('t-monthly',    '$' + monthlyAfterTax.toLocaleString());
+  el('t-tax-monthly','$' + monthlyTax.toLocaleString());
+  el('t-tax-refund', '$' + annualTaxRefund.toLocaleString());
+
+  // 覆蓋率也要更新（因為目標月領換了）
+  updateCoverageCards();
 }
 
-function updateCoverageCards(monthlyTarget) {
-  if (!monthlyTarget) monthlyTarget = Math.round(annualTarget / 12);
+function updateCoverageCards() {
   const { exr } = getCash();
   const qqqiPos    = POSITIONS.find(p => p.sym === 'QQQI');
   const qqqiShares = qqqiPos ? qqqiPos.shares : 9302;
+  const qqqiPrice  = prices['QQQI'] || 0;
 
-  const el = document.getElementById('qqqiSharesStat');
-  if (el) el.textContent = qqqiShares.toLocaleString() + '股';
+  // 更新持股顯示
+  const el = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
+  el('qqqiSharesStat', qqqiShares.toLocaleString() + '股');
+  if (qqqiPrice) el('cfQqqiPrice', '$' + qqqiPrice.toFixed(2));
 
-  const tEl = document.getElementById('cov-target-label');
-  if (tEl) tEl.textContent = `目標 $${monthlyTarget.toLocaleString()}/月`;
+  // 年化殖利率
+  if (qqqiPrice > 0) {
+    const yieldPct = (0.6314 * 12 / qqqiPrice * 100).toFixed(2);
+    el('cfYield', yieldPct + '%');
+  }
 
+  // 目前配置：近12月均值年領/月領/退稅
+  const avgMonthlyTWD = Math.round(qqqiShares * 0.6314 * exr);
+  const avgAnnualTWD  = avgMonthlyTWD * 12;
+  const actualMonthlyAfterTax = Math.round(avgMonthlyTWD * (1 - TAX_RATE));
+  const actualTaxRefund       = Math.round(avgAnnualTWD * TAX_RATE);
+
+  el('cfMonthly', '$' + avgMonthlyTWD.toLocaleString()); // 備用
+  el('a-annual',  '$' + avgAnnualTWD.toLocaleString() + '/年');
+  el('a-monthly', '$' + actualMonthlyAfterTax.toLocaleString());
+  el('a-tax-refund', '$' + actualTaxRefund.toLocaleString());
+
+  // 對比目標的月領（稅前，用來比較）
+  const monthlyTarget = Math.round(annualTarget / 12);
+  el('cov-target-label', `目標月配息 $${monthlyTarget.toLocaleString()}/月（稅前）`);
+
+  // 覆蓋率 bars（以稅前月配息 vs 目標月配息比較）
+  const ok = (gap) => gap >= 0;
   [
     { id:'cov-low',  rate:0.5309 },
     { id:'cov-avg',  rate:0.6314 },
     { id:'cov-now',  rate:0.6297 },
     { id:'cov-high', rate:0.6445 },
   ].forEach(s => {
-    const monthly = qqqiShares * s.rate * exr;
+    const monthly = Math.round(qqqiShares * s.rate * exr);
     const pct     = monthlyTarget > 0 ? Math.min(monthly / monthlyTarget * 100, 100) : 100;
     const gap     = monthly - monthlyTarget;
-    const ok      = gap >= 0;
     const barEl   = document.getElementById(s.id + '-bar');
     const metaEl  = document.getElementById(s.id + '-meta');
-    if (barEl)  { barEl.style.width = pct.toFixed(1)+'%'; barEl.style.background = ok ? 'linear-gradient(90deg,#27AE60,#1e8449)' : 'linear-gradient(90deg,#E74C3C,#C0392B)'; }
-    if (metaEl) metaEl.innerHTML = `<span class="${ok?'green':'red'}">$${Math.round(monthly).toLocaleString()}　${ok?'✅':'❌'} ${gap>=0?'+':''}$${Math.round(gap).toLocaleString()}</span><span>${pct.toFixed(1)}%</span>`;
+    if (barEl)  {
+      barEl.style.width = pct.toFixed(1) + '%';
+      barEl.style.background = ok(gap) ? 'linear-gradient(90deg,#27AE60,#1e8449)' : 'linear-gradient(90deg,#E74C3C,#C0392B)';
+    }
+    if (metaEl) metaEl.innerHTML = `<span class="${ok(gap)?'green':'red'}">$${monthly.toLocaleString()}　${ok(gap)?'✅':'❌'} ${gap>=0?'+':''}$${Math.round(gap).toLocaleString()}</span><span>${pct.toFixed(1)}%</span>`;
   });
+
+  // summary
+  const covPct = monthlyTarget > 0 ? (avgMonthlyTWD / monthlyTarget * 100).toFixed(1) : 0;
+  const sumEl = document.getElementById('cov-summary');
+  if (sumEl) {
+    const isOk = avgMonthlyTWD >= monthlyTarget;
+    sumEl.className = 'info-box ' + (isOk ? 'ig' : 'iw');
+    sumEl.textContent = `${isOk?'✅':'⚠️'} 均值月配息 $${avgMonthlyTWD.toLocaleString()}，覆蓋率 ${covPct}%`;
+  }
 }
 
 function sw(name) {
