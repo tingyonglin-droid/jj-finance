@@ -231,6 +231,7 @@
   <div class="tab" onclick="sw('holdings')">📋 持倉明細</div>
   <div class="tab" onclick="sw('clec')">⚖️ CLEC策略</div>
   <div class="tab" onclick="sw('debt')">🏦 負債管理</div>
+  <div class="tab" onclick="sw('edit')">✏️ 編輯持倉</div>
 </div>
 
 <!-- ===== PAGE 1: 總覽 ===== -->
@@ -685,10 +686,47 @@
   </div>
 </div>
 
+<!-- ===== PAGE 6: 編輯持倉 ===== -->
+<div class="page" id="page-edit">
+  <div class="grid g2">
+
+    <div class="card span2">
+      <div class="clabel">編輯持倉 · Holdings Editor</div>
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
+        <button onclick="addRow()" style="background:var(--green);color:white;border:none;padding:7px 14px;border-radius:3px;font-family:'DM Mono',monospace;font-size:0.7rem;cursor:pointer;">＋ 新增持股</button>
+        <button onclick="savePositions()" style="background:var(--charcoal);color:white;border:none;padding:7px 14px;border-radius:3px;font-family:'DM Mono',monospace;font-size:0.7rem;cursor:pointer;">💾 儲存並同步 Sheets</button>
+        <span id="editStatus" style="font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--muted);"></span>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table class="tbl" id="editTable">
+          <thead>
+            <tr>
+              <th style="text-align:left;min-width:80px;">代號</th>
+              <th style="text-align:left;min-width:60px;">類型</th>
+              <th style="min-width:80px;">股數</th>
+              <th style="min-width:80px;">均價</th>
+              <th style="text-align:left;min-width:100px;">角色</th>
+              <th style="min-width:40px;">刪除</th>
+            </tr>
+          </thead>
+          <tbody id="editTbody"></tbody>
+        </table>
+      </div>
+
+      <div class="info-box ib" style="margin-top:14px;">
+        類型：<strong>us</strong>（美股）/ <strong>tw</strong>（台股）/ <strong>crypto</strong>（加密）<br>
+        角色：配息核心 / CLEC槓桿 / 成長 / 持有 / 持有-等回升 / 持有-等前高 / 比特幣ETF
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
 // ===== 換股後持倉（從JSON實際數據）=====
-const POSITIONS = [
+let POSITIONS = [
   // 美股
   {sym:'QQQI', shares:9302,  cost:52.5907, type:'us', role:'配息核心',   tag:'us',  tagLabel:'美'},
   {sym:'QLD',  shares:1322,  cost:66.01,   type:'us', role:'CLEC槓桿',  tag:'lev', tagLabel:'2x'},
@@ -997,11 +1035,12 @@ function setTargetBeta(val) {
   updateCLEC();
 }
 function sw(name) {
-  const tabs = ['overview','cashflow','holdings','clec','debt'];
+  const tabs = ['overview','cashflow','holdings','clec','debt','edit'];
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab')[tabs.indexOf(name)].classList.add('active');
   document.getElementById('page-' + name).classList.add('active');
+  if (name === 'edit') renderEditTable();
 }
 
 // ===== STATUS =====
@@ -1034,7 +1073,11 @@ async function saveCashToSheets() {
       method: 'POST',
       body: JSON.stringify({
         cash1: c1, cash2: c2, cash3: c3, cashUSD: usd,
-        targetBeta: targetBeta  // 同時存 targetBeta
+        targetBeta: targetBeta,
+        positions: POSITIONS.map(p => ({
+          sym: p.sym, shares: p.shares, cost: p.cost,
+          type: p.type, role: p.role
+        }))
       }),
     });
   } catch(e) {}
@@ -1057,6 +1100,10 @@ async function autoLoadCash() {
         targetBeta = parseFloat(savedCash.targetBeta);
         const slider = document.querySelector('input[type="range"]');
         if (slider) slider.value = targetBeta;
+      }
+      // 載入持倉
+      if (savedCash.positions && savedCash.positions.length > 0) {
+        loadPositionsFromSheets(savedCash.positions);
       }
     }
     if (exr) document.getElementById('exrInput').value = exr.toFixed(2);
@@ -1313,6 +1360,123 @@ function updatePie(investTWD, cashTWD) {
     };
     pieChart.update();
   }
+}
+
+// ===== 持倉編輯器 =====
+const ROLE_OPTIONS = ['配息核心','CLEC槓桿','成長','持有','持有-等回升','持有-等前高','比特幣ETF'];
+const TYPE_OPTIONS = ['us','tw','crypto'];
+
+// tag/tagLabel 自動推算
+function inferTag(type, role) {
+  if (type === 'crypto') return { tag:'crypto', tagLabel:'加密' };
+  if (type === 'tw') return { tag:'lev', tagLabel:'2x台' }; // 預設，可能是槓桿
+  // us
+  if (role === 'CLEC槓桿') return { tag:'lev', tagLabel:'2x' };
+  if (role === '持有-等回升') return { tag:'lev', tagLabel:'3x金' };
+  if (role === '持有-等前高') return { tag:'lev', tagLabel:'2x' };
+  return { tag:'us', tagLabel:'美' };
+}
+
+function renderEditTable() {
+  const tbody = document.getElementById('editTbody');
+  if (!tbody) return;
+  tbody.innerHTML = POSITIONS.map((p, i) => `
+    <tr id="erow-${i}">
+      <td><input value="${p.sym}" onchange="updatePos(${i},'sym',this.value)"
+        style="width:80px;border:1px solid var(--border);border-radius:2px;padding:4px 6px;font-family:'DM Mono',monospace;font-size:0.72rem;text-transform:uppercase;"></td>
+      <td>
+        <select onchange="updatePos(${i},'type',this.value)"
+          style="border:1px solid var(--border);border-radius:2px;padding:4px 5px;font-family:'DM Mono',monospace;font-size:0.7rem;background:white;">
+          ${TYPE_OPTIONS.map(t=>`<option value="${t}" ${p.type===t?'selected':''}>${t}</option>`).join('')}
+        </select>
+      </td>
+      <td><input type="number" value="${p.shares}" onchange="updatePos(${i},'shares',+this.value)"
+        style="width:90px;border:1px solid var(--border);border-radius:2px;padding:4px 6px;font-family:'DM Mono',monospace;font-size:0.72rem;text-align:right;"></td>
+      <td><input type="number" step="0.0001" value="${p.cost}" onchange="updatePos(${i},'cost',+this.value)"
+        style="width:90px;border:1px solid var(--border);border-radius:2px;padding:4px 6px;font-family:'DM Mono',monospace;font-size:0.72rem;text-align:right;"></td>
+      <td>
+        <select onchange="updatePos(${i},'role',this.value)"
+          style="width:130px;border:1px solid var(--border);border-radius:2px;padding:4px 5px;font-family:'DM Mono',monospace;font-size:0.7rem;background:white;">
+          ${ROLE_OPTIONS.map(r=>`<option value="${r}" ${p.role===r?'selected':''}>${r}</option>`).join('')}
+        </select>
+      </td>
+      <td style="text-align:center;">
+        <button onclick="deleteRow(${i})"
+          style="background:#FFEBE8;color:var(--red);border:none;width:26px;height:26px;border-radius:3px;cursor:pointer;font-size:0.85rem;">✕</button>
+      </td>
+    </tr>`).join('');
+}
+
+function updatePos(i, field, val) {
+  POSITIONS[i][field] = val;
+  // 同步 tag/tagLabel
+  const inf = inferTag(POSITIONS[i].type, POSITIONS[i].role);
+  POSITIONS[i].tag      = inf.tag;
+  POSITIONS[i].tagLabel = inf.tagLabel;
+}
+
+function addRow() {
+  POSITIONS.push({ sym:'', shares:0, cost:0, type:'us', role:'持有', tag:'us', tagLabel:'美' });
+  renderEditTable();
+  // 捲到最下面
+  const tbody = document.getElementById('editTbody');
+  if (tbody) tbody.lastElementChild?.scrollIntoView({ behavior:'smooth' });
+}
+
+function deleteRow(i) {
+  if (!confirm(`確定刪除 ${POSITIONS[i].sym || '這筆'}持倉？`)) return;
+  POSITIONS.splice(i, 1);
+  renderEditTable();
+}
+
+async function savePositions() {
+  const statusEl = document.getElementById('editStatus');
+  statusEl.textContent = '儲存中…';
+  statusEl.style.color = 'var(--muted)';
+
+  // 驗證：過濾空白
+  const valid = POSITIONS.filter(p => p.sym.trim());
+  if (valid.length !== POSITIONS.length) {
+    if (!confirm('有代號空白的持股，儲存時會自動略過，確定繼續？')) {
+      statusEl.textContent = '已取消';
+      return;
+    }
+    POSITIONS = valid;
+    renderEditTable();
+  }
+
+  try {
+    const { c1, c2, c3, usd } = getCash();
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        cash1: c1, cash2: c2, cash3: c3, cashUSD: usd,
+        targetBeta: targetBeta,
+        positions: POSITIONS.map(p => ({
+          sym: p.sym, shares: p.shares, cost: p.cost,
+          type: p.type, role: p.role
+        }))
+      }),
+    });
+    const now = new Date().toLocaleString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+    statusEl.textContent = `✅ 已儲存並同步 Sheets · ${now}`;
+    statusEl.style.color = 'var(--green)';
+
+    // 重新計算
+    recalc();
+  } catch(e) {
+    statusEl.textContent = '❌ 儲存失敗：' + e.message;
+    statusEl.style.color = 'var(--red)';
+  }
+}
+
+// ===== 從 Sheets 載入持倉 =====
+function loadPositionsFromSheets(savedPositions) {
+  if (!savedPositions || !savedPositions.length) return;
+  POSITIONS = savedPositions.map(p => {
+    const inf = inferTag(p.type, p.role);
+    return { ...p, tag: inf.tag, tagLabel: inf.tagLabel };
+  });
 }
 
 // ===== INIT CHARTS =====
