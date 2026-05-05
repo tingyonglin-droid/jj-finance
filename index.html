@@ -178,7 +178,6 @@
     <button class="update-btn" id="updateBtn" onclick="updateAll()">
       <span id="btnIcon">⟳</span> 一鍵更新股價
     </button>
-    <div class="badge">✅ 換股完成</div>
   </div>
 </div>
 
@@ -313,19 +312,17 @@
           <span class="bignum green" id="annualTargetDisplay" style="font-size:1.4rem;">$210萬</span>
         </div>
       </div>
-
       <div class="div"></div>
-
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
         <div class="stat">
-          <div style="font-family:'DM Mono',monospace;font-size:0.59rem;color:var(--muted);margin-bottom:5px;">月領（預扣30%後）</div>
-          <div class="val green" id="t-monthly" style="font-size:0.85rem;">$12,250</div>
-          <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);margin-top:3px;">= 年領×70%÷12</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.59rem;color:var(--muted);margin-bottom:5px;">均值月領</div>
+          <div class="val green" id="t-avg-monthly" style="font-size:0.85rem;">$175,000</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);margin-top:3px;">= 年領÷12</div>
         </div>
         <div class="stat">
-          <div style="font-family:'DM Mono',monospace;font-size:0.59rem;color:var(--muted);margin-bottom:5px;">預扣稅（月）</div>
-          <div class="val" id="t-tax-monthly" style="font-size:0.85rem;color:var(--charcoal);">$5,250</div>
-          <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);margin-top:3px;">= 年領×30%÷12</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.59rem;color:var(--muted);margin-bottom:5px;">實際月領（預扣30%後）</div>
+          <div class="val green" id="t-monthly" style="font-size:0.85rem;">$12,250</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);margin-top:3px;">= 年領×70%÷12</div>
         </div>
         <div class="stat">
           <div style="font-family:'DM Mono',monospace;font-size:0.59rem;color:var(--muted);margin-bottom:5px;">4月退稅（全年30%）</div>
@@ -338,7 +335,6 @@
     <!-- 目前配置 -->
     <div class="card ab">
       <div class="clabel">目前配置（QQQI 自動計算）</div>
-
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
         <div class="stat">
           <div style="font-family:'DM Mono',monospace;font-size:0.59rem;color:var(--muted);margin-bottom:4px;">QQQI 現價</div>
@@ -349,18 +345,17 @@
           <div class="val blue" id="qqqiSharesStat" style="font-size:0.85rem;">9,302股</div>
         </div>
       </div>
-
       <div class="div"></div>
-
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
         <div class="stat">
-          <div style="font-family:'DM Mono',monospace;font-size:0.59rem;color:var(--muted);margin-bottom:5px;">近12月均值年領</div>
-          <div class="val green" id="a-annual" style="font-size:0.85rem;">$185,150×12</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.59rem;color:var(--muted);margin-bottom:5px;">均值月領</div>
+          <div class="val green" id="a-avg-monthly" style="font-size:0.85rem;">—</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);margin-top:3px;">= 股數×$0.6314×匯率</div>
         </div>
         <div class="stat">
-          <div style="font-family:'DM Mono',monospace;font-size:0.59rem;color:var(--muted);margin-bottom:5px;">月領（預扣30%後）</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.59rem;color:var(--muted);margin-bottom:5px;">實際月領（預扣30%後）</div>
           <div class="val green" id="a-monthly" style="font-size:0.85rem;">—</div>
-          <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);margin-top:3px;">= 月配息×70%</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);margin-top:3px;">= 均值月領×70%</div>
         </div>
         <div class="stat">
           <div style="font-family:'DM Mono',monospace;font-size:0.59rem;color:var(--muted);margin-bottom:5px;">4月退稅（全年30%）</div>
@@ -368,7 +363,6 @@
           <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);margin-top:3px;">= 年配息×30%</div>
         </div>
       </div>
-
       <div class="info-box ib" style="margin-top:12px;" id="cov-summary">計算中…</div>
     </div>
 
@@ -1072,19 +1066,16 @@ function updateAnnualTarget() {
   const val = parseFloat(document.getElementById('annualTargetInput').value) || 2100000;
   annualTarget = val;
   const wan = (val / 10000).toFixed(0);
-
-  // 目標欄
+  const avgMonthly      = Math.round(val / 12);
   const monthlyAfterTax = Math.round(val * (1 - TAX_RATE) / 12);
-  const monthlyTax      = Math.round(val * TAX_RATE / 12);
   const annualTaxRefund = Math.round(val * TAX_RATE);
 
   const el = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
   el('annualTargetDisplay', `$${wan}萬`);
-  el('t-monthly',    '$' + monthlyAfterTax.toLocaleString());
-  el('t-tax-monthly','$' + monthlyTax.toLocaleString());
-  el('t-tax-refund', '$' + annualTaxRefund.toLocaleString());
+  el('t-avg-monthly',  '$' + avgMonthly.toLocaleString());
+  el('t-monthly',      '$' + monthlyAfterTax.toLocaleString());
+  el('t-tax-refund',   '$' + annualTaxRefund.toLocaleString());
 
-  // 覆蓋率也要更新（因為目標月領換了）
   updateCoverageCards();
 }
 
@@ -1112,6 +1103,7 @@ function updateCoverageCards() {
   const actualTaxRefund       = Math.round(avgAnnualTWD * TAX_RATE);
 
   el('cfMonthly', '$' + avgMonthlyTWD.toLocaleString()); // 備用
+  el('a-avg-monthly', '$' + avgMonthlyTWD.toLocaleString());
   el('a-annual',  '$' + avgAnnualTWD.toLocaleString() + '/年');
   el('a-monthly', '$' + actualMonthlyAfterTax.toLocaleString());
   el('a-tax-refund', '$' + actualTaxRefund.toLocaleString());
