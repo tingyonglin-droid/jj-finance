@@ -14,6 +14,7 @@
     --border:rgba(201,169,110,0.22);
   }
   *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{overflow-x:hidden;}
   body{font-family:'Noto Serif TC',serif;background:var(--paper);color:var(--ink);}
 
   .header{padding:24px 40px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;position:relative;}
@@ -157,12 +158,67 @@
   .confirm-banner{background:#FFF3E0;border-left:4px solid #E67E22;padding:10px 16px;font-family:'DM Mono',monospace;font-size:0.7rem;color:#7a3e00;display:flex;align-items:center;gap:10px;}
   .confirm-banner strong{color:#c0590a;}
 
-  @media(max-width:900px){
-    .g3,.g2,.g21,.g12{grid-template-columns:1fr;}
+  /* ===== 手機直屏 RWD ===== */
+  @media(max-width:600px){
+    /* statrow 在手機上改 2欄 */
+    .statrow[style*="grid-template-columns:1fr 1fr 1fr 1fr 1fr"]{
+      grid-template-columns:1fr 1fr !important;
+    }
+    .statrow[style*="grid-template-columns:1fr 1fr 1fr 1fr"]{
+      grid-template-columns:1fr 1fr !important;
+    }
+    /* 全頁 padding 縮小 */
+    .header,.tabs,.page,.status-bar{padding-left:12px;padding-right:12px;}
+    .header{padding-top:16px;padding-bottom:12px;}
+
+    /* 標題縮小 */
+    .header h1{font-size:1.3rem;}
+    .header-sub{font-size:0.58rem;}
+    .update-btn{padding:7px 12px;font-size:0.65rem;}
+
+    /* 控制列：垂直堆疊 */
+    .ctrl-bar{flex-direction:column;padding:10px 12px;gap:8px;}
+    .ctrl-section{border-right:none;margin-right:0;padding:6px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+    .ctrl-section:last-child{border-bottom:none;}
+    .ctrl-label{font-size:0.58rem;width:100%;margin-bottom:4px;}
+    .cash-field{gap:4px;}
+    .cash-field label{font-size:0.6rem;min-width:64px;}
+    .cash-input{width:120px;font-size:0.68rem;}
+    .exr-input{width:80px;}
+    .cash-total-badge{font-size:0.65rem;padding:4px 10px;}
+
+    /* Grid 全部單欄 */
+    .g3,.g2,.g21,.g12,.grid{grid-template-columns:1fr;}
     .span2,.span3{grid-column:span 1;}
-    .header,.tabs,.page,.ctrl-bar,.status-bar{padding-left:16px;padding-right:16px;}
-    .cash-field label{min-width:58px;}
-    .cash-input{width:92px;}
+
+    /* Card padding */
+    .card{padding:14px;}
+
+    /* Tabs 可橫向捲動 */
+    .tabs{padding-left:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    .tab{padding:10px 12px;font-size:0.6rem;}
+
+    /* 持倉表格橫向捲動 */
+    .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -14px;padding:0 14px;}
+    .tbl{min-width:520px;font-size:0.66rem;}
+    .tbl th,.tbl td{padding:5px 5px;}
+
+    /* stat 字型縮小 */
+    .stat .val{font-size:0.8rem;}
+    .stat .lbl{font-size:0.6rem;}
+    .bignum{font-size:1.5rem;}
+
+    /* CLEC gauge 縮小 */
+    .gauge-wrap svg{width:120px;height:66px;}
+  }
+
+  /* 平板/橫屏 */
+  @media(max-width:900px) and (min-width:601px){
+    .g3,.g21,.g12{grid-template-columns:1fr 1fr;}
+    .g2{grid-template-columns:1fr 1fr;}
+    .span2,.span3{grid-column:span 2;}
+    .header,.tabs,.page,.ctrl-bar,.status-bar{padding-left:20px;padding-right:20px;}
+    .cash-input{width:96px;}
   }
 </style>
 </head>
@@ -420,6 +476,7 @@
       <span>🇺🇸 美股</span>
       <span id="us-group-total" style="color:var(--blue);"></span>
     </div>
+    <div class="tbl-wrap">
     <table class="tbl" style="margin-bottom:18px;">
       <thead>
         <tr>
@@ -433,12 +490,14 @@
       </thead>
       <tbody id="holdingsTbody-us"></tbody>
     </table>
+    </div>
 
     <!-- 台股 -->
     <div style="font-family:'DM Mono',monospace;font-size:0.63rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
       <span>🇹🇼 台股</span>
       <span id="tw-group-total" style="color:var(--green);"></span>
     </div>
+    <div class="tbl-wrap">
     <table class="tbl" style="margin-bottom:18px;">
       <thead>
         <tr>
@@ -452,12 +511,14 @@
       </thead>
       <tbody id="holdingsTbody-tw"></tbody>
     </table>
+    </div>
 
     <!-- 加密 -->
     <div style="font-family:'DM Mono',monospace;font-size:0.63rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
       <span>₿ 加密貨幣</span>
       <span id="crypto-group-total" style="color:#8B008B;"></span>
     </div>
+    <div class="tbl-wrap">
     <table class="tbl">
       <thead>
         <tr>
@@ -470,6 +531,7 @@
       </thead>
       <tbody id="holdingsTbody-crypto"></tbody>
     </table>
+    </div>
 
   </div>
 </div>
