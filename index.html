@@ -242,7 +242,7 @@
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
         <div>
           <div class="bignum gold" id="netWorthDisplay">$28,880,007</div>
-          <div class="sublabel" id="netWorthSub">總資產 − 負債 $24,547,235 ｜ 財務槓桿 · 匯率</div>
+          <div class="sublabel" id="netWorthSub">總資產 − 負債 $24,547,235 ｜ 投資槓桿 · 匯率</div>
         </div>
         <button onclick="recordMonthlyNetWorth()" id="recordBtn"
           style="display:flex;align-items:center;gap:7px;background:var(--gold-dark);color:white;border:none;padding:9px 16px;border-radius:3px;font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;cursor:pointer;transition:background .2s;"
@@ -255,7 +255,7 @@
         <div class="stat"><div class="val green" id="investStat">—</div><div class="lbl">📈 投資部位</div></div>
         <div class="stat"><div class="val red">−$24,547,235</div><div class="lbl">🏠 總負債</div></div>
         <div class="stat"><div class="val gold" id="exrStat">31.52</div><div class="lbl">💱 USD/TWD</div></div>
-        <div class="stat"><div class="val" id="leverageStat" style="color:var(--charcoal);">2.14x</div><div class="lbl">⚡ 財務槓桿</div></div>
+        <div class="stat"><div class="val" id="leverageStat" style="color:var(--charcoal);">2.14x</div><div class="lbl">⚡ 投資槓桿</div></div>
       </div>
     </div>
 
@@ -763,26 +763,26 @@
 // ===== 換股後持倉（從JSON實際數據）=====
 let POSITIONS = [
   // 美股
-  {sym:'QQQI', shares:9302,  cost:52.5907, type:'us', role:'配息核心',   tag:'us',  tagLabel:'美'},
-  {sym:'QLD',  shares:1322,  cost:66.01,   type:'us', role:'CLEC槓桿',  tag:'lev', tagLabel:'2x'},
-  {sym:'QQQ',  shares:105,   cost:448.87,  type:'us', role:'成長',       tag:'us',  tagLabel:'美'},
-  {sym:'SMH',  shares:115,   cost:296.28,  type:'us', role:'成長',       tag:'us',  tagLabel:'美'},
-  {sym:'SHNY', shares:3680,  cost:16.578,  type:'us', role:'持有-等回升', tag:'lev', tagLabel:'3x金'},
-  {sym:'NVDA', shares:166,   cost:213.00,  type:'us', role:'成長',       tag:'us',  tagLabel:'美'},
-  {sym:'TSLL', shares:2866,  cost:15.28,   type:'us', role:'持有-等前高', tag:'lev', tagLabel:'2x'},
-  {sym:'TSLA', shares:45,    cost:438.72,  type:'us', role:'持有',       tag:'us',  tagLabel:'美'},
-  {sym:'URA',  shares:256,   cost:56.70,   type:'us', role:'持有',       tag:'us',  tagLabel:'美'},
-  {sym:'ITA',  shares:58,    cost:216.04,  type:'us', role:'持有',       tag:'us',  tagLabel:'美'},
-  {sym:'XLU',  shares:215,   cost:46.19,   type:'us', role:'持有',       tag:'us',  tagLabel:'美'},
-  {sym:'UFO',  shares:195,   cost:50.64,   type:'us', role:'持有',       tag:'us',  tagLabel:'美'},
-  {sym:'IBIT', shares:116,   cost:39.78,   type:'crypto', role:'比特幣ETF',  tag:'crypto', tagLabel:'加密'},
+  {sym:'QQQI', shares:9302,  cost:52.5907, type:'us',     role:'配息核心',   tag:'us',     tagLabel:'美',   exp:1},
+  {sym:'QLD',  shares:1322,  cost:66.01,   type:'us',     role:'CLEC槓桿',  tag:'lev',    tagLabel:'2x',   exp:2},
+  {sym:'QQQ',  shares:105,   cost:448.87,  type:'us',     role:'成長',       tag:'us',     tagLabel:'美',   exp:1},
+  {sym:'SMH',  shares:115,   cost:296.28,  type:'us',     role:'成長',       tag:'us',     tagLabel:'美',   exp:1},
+  {sym:'SHNY', shares:3680,  cost:16.578,  type:'us',     role:'持有-等回升', tag:'lev',   tagLabel:'3x金', exp:3},
+  {sym:'NVDA', shares:166,   cost:213.00,  type:'us',     role:'成長',       tag:'us',     tagLabel:'美',   exp:1},
+  {sym:'TSLL', shares:2866,  cost:15.28,   type:'us',     role:'持有-等前高', tag:'lev',   tagLabel:'2x',   exp:2},
+  {sym:'TSLA', shares:45,    cost:438.72,  type:'us',     role:'持有',       tag:'us',     tagLabel:'美',   exp:1},
+  {sym:'URA',  shares:256,   cost:56.70,   type:'us',     role:'持有',       tag:'us',     tagLabel:'美',   exp:1},
+  {sym:'ITA',  shares:58,    cost:216.04,  type:'us',     role:'持有',       tag:'us',     tagLabel:'美',   exp:1},
+  {sym:'XLU',  shares:215,   cost:46.19,   type:'us',     role:'持有',       tag:'us',     tagLabel:'美',   exp:1},
+  {sym:'UFO',  shares:195,   cost:50.64,   type:'us',     role:'持有',       tag:'us',     tagLabel:'美',   exp:1},
+  {sym:'IBIT', shares:116,   cost:39.78,   type:'crypto', role:'比特幣ETF',  tag:'crypto', tagLabel:'加密', exp:1},
   // 台股
-  {sym:'00685L',shares:29000,  cost:165.24, type:'tw', role:'CLEC槓桿', tag:'lev', tagLabel:'2x台'},
-  {sym:'00631L',shares:185000, cost:24.05,  type:'tw', role:'CLEC槓桿', tag:'lev', tagLabel:'2x台'},
-  {sym:'00981A',shares:17000,  cost:20.83,  type:'tw', role:'持有',     tag:'tw',  tagLabel:'台'},
-  {sym:'00994A',shares:28000,  cost:12.58,  type:'tw', role:'持有',     tag:'tw',  tagLabel:'台'},
-  {sym:'00992A',shares:26000,  cost:13.57,  type:'tw', role:'持有',     tag:'tw',  tagLabel:'台'},
-  {sym:'00991A',shares:26000,  cost:13.24,  type:'tw', role:'持有',     tag:'tw',  tagLabel:'台'},
+  {sym:'00685L',shares:29000,  cost:165.24, type:'tw', role:'CLEC槓桿', tag:'lev', tagLabel:'2x台', exp:2},
+  {sym:'00631L',shares:185000, cost:24.05,  type:'tw', role:'CLEC槓桿', tag:'lev', tagLabel:'2x台', exp:2},
+  {sym:'00981A',shares:17000,  cost:20.83,  type:'tw', role:'持有',     tag:'tw',  tagLabel:'台',   exp:1},
+  {sym:'00994A',shares:28000,  cost:12.58,  type:'tw', role:'持有',     tag:'tw',  tagLabel:'台',   exp:1},
+  {sym:'00992A',shares:26000,  cost:13.57,  type:'tw', role:'持有',     tag:'tw',  tagLabel:'台',   exp:1},
+  {sym:'00991A',shares:26000,  cost:13.24,  type:'tw', role:'持有',     tag:'tw',  tagLabel:'台',   exp:1},
 ];
 
 // JSON快照市值（更新股價前的基準）
@@ -897,24 +897,28 @@ function updateCash() {
 // ===== RECALC =====
 function recalc() {
   const { total: cashTWD, exr } = getCash();
-  let investTWD = 0;
+  let investTWD    = 0;
+  let totalExposure = 0;
+
   POSITIONS.forEach(p => {
     const price = prices[p.sym];
-    investTWD += price
-      ? (p.type === 'us' ? p.shares * price * exr : p.shares * price)
+    const val = price
+      ? (p.type === 'tw' ? p.shares * price : p.shares * price * exr)
       : (JSON_VALS[p.sym] || 0);
+    investTWD    += val;
+    totalExposure += val * (p.exp || 1);
   });
 
   const totalAssets = cashTWD + investTWD;
   const netWorth    = totalAssets - LIABILITIES;
-  // 財務槓桿 = 總資產 / 淨資產（衡量負債比例）
-  const leverage    = netWorth > 0 ? totalAssets / netWorth : 0;
+  // 投資槓桿 = 總曝險（排除現金，槓桿ETF已放大）÷ 淨資產
+  const investLev   = netWorth > 0 ? totalExposure / netWorth : 0;
 
   document.getElementById('netWorthDisplay').textContent = fmt(netWorth);
   document.getElementById('netWorthSub').textContent =
-    `總資產 ${fmt(totalAssets)} − 負債 ${fmt(LIABILITIES)} ｜ 財務槓桿 ${leverage.toFixed(2)}x ｜ 匯率 ${exr}`;
-  document.getElementById('investStat').textContent  = fmt(investTWD);
-  document.getElementById('leverageStat').textContent = leverage.toFixed(2) + 'x';
+    `總資產 ${fmt(totalAssets)} − 負債 ${fmt(LIABILITIES)} ｜ 總曝險 ${fmt(totalExposure)} ｜ 匯率 ${exr}`;
+  document.getElementById('investStat').textContent   = fmt(investTWD);
+  document.getElementById('leverageStat').textContent = investLev.toFixed(2) + 'x';
 
   if (prices['QQQI']) document.getElementById('cfQqqiPrice').textContent = '$' + prices['QQQI'].toFixed(2);
 
@@ -1634,11 +1638,16 @@ async function savePositions() {
 function loadPositionsFromSheets(savedPositions) {
   if (!savedPositions || !savedPositions.length) return;
   POSITIONS = savedPositions.map(p => {
-    // 修正比特幣ETF的type
     let type = p.type;
     if (p.role === '比特幣ETF') type = 'crypto';
     const inf = inferTag(type, p.role);
-    return { ...p, type, tag: inf.tag, tagLabel: inf.tagLabel };
+    // 推算曝險倍數
+    let exp = p.exp || 1;
+    if (!p.exp) {
+      if (p.tagLabel === '3x金' || p.role === '持有-等回升') exp = 3;
+      else if (inf.tag === 'lev') exp = 2;
+    }
+    return { ...p, type, tag: inf.tag, tagLabel: inf.tagLabel, exp };
   });
 }
 
