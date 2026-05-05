@@ -539,43 +539,50 @@
     <div class="card">
       <div class="clabel">偏離分析 · 再平衡建議</div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+      <!-- 觸發閾值（可手動填入） -->
+      <div style="background:var(--paper-dark);border-radius:3px;padding:10px 12px;margin-bottom:12px;">
+        <div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);margin-bottom:8px;">觸發閾值設定</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--charcoal);">偏離超過 ±</span>
+          <input type="number" id="triggerPctInput" value="10" min="1" max="50" step="1"
+            style="width:56px;border:1px solid var(--border);border-radius:2px;padding:4px 8px;font-family:'DM Mono',monospace;font-size:0.78rem;text-align:center;color:var(--charcoal);"
+            oninput="updateCLEC()">
+          <span style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--charcoal);">% 時觸發</span>
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);margin-top:8px;line-height:1.9;">
+          <div>上限 Beta：<strong id="triggerHigh" style="color:var(--red);">—</strong> → 賣槓桿</div>
+          <div>下限 Beta：<strong id="triggerLow"  style="color:var(--blue);">—</strong> → 買槓桿</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
         <div class="stat">
           <div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);margin-bottom:4px;">Beta偏離量</div>
           <div id="clecBetaDiff" style="font-family:'DM Mono',monospace;font-size:0.85rem;font-weight:500;">—</div>
         </div>
         <div class="stat">
-          <div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);margin-bottom:4px;">觸發閾值</div>
-          <div style="font-family:'DM Mono',monospace;font-size:0.85rem;font-weight:500;color:var(--charcoal);">±10%</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);margin-bottom:4px;">目前狀態</div>
+          <div id="clecStatusBadge" style="font-family:'DM Mono',monospace;font-size:0.78rem;font-weight:600;">—</div>
         </div>
       </div>
 
       <div id="clecRebalAdvice" class="info-box ig">按「一鍵更新」後計算</div>
-
-      <div class="div"></div>
-
-      <!-- CLEC再平衡規則 -->
-      <div style="font-family:'DM Mono',monospace;font-size:0.63rem;color:var(--muted);line-height:1.9;">
-        <div>⚡ Beta &gt; 目標×1.1 → <span style="color:var(--red);">賣槓桿，補現金</span></div>
-        <div>⚡ Beta &lt; 目標×0.9 → <span style="color:var(--blue);">買槓桿，減現金</span></div>
-        <div>✅ 偏離 &lt; ±10% → 無需操作</div>
-      </div>
     </div>
 
-    <!-- CLEC 標的（可展開） -->
+    <!-- CLEC 標的（預設展開） -->
     <div class="card">
       <div class="clabel">CLEC 標的明細</div>
 
-      <!-- 現金群組 -->
+      <!-- 現金群組（預設展開） -->
       <div style="border:1px solid var(--border);border-radius:3px;overflow:hidden;margin-bottom:8px;">
-        <div onclick="toggleGroup('cashGroup')" style="background:var(--paper-dark);padding:8px 12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
+        <div onclick="toggleGroup('cashGroup','cashArrow')" style="background:var(--paper-dark);padding:8px 12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
           <span style="font-family:'DM Mono',monospace;font-size:0.68rem;font-weight:600;">🔵 現金 (Beta 0x)</span>
           <div style="display:flex;align-items:center;gap:10px;">
             <span id="clecCash" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--blue);">—</span>
-            <span style="font-size:0.7rem;color:var(--muted);">▾</span>
+            <span id="cashArrow" style="font-size:0.7rem;color:var(--muted);">▴</span>
           </div>
         </div>
-        <div id="cashGroup" style="display:none;">
+        <div id="cashGroup" style="display:block;">
           <table class="tbl" style="font-size:0.69rem;">
             <tbody>
               <tr><td>遠東活存</td><td id="clecC1" style="text-align:right;">—</td></tr>
@@ -586,16 +593,16 @@
         </div>
       </div>
 
-      <!-- 槓桿群組 -->
+      <!-- 槓桿群組（預設展開） -->
       <div style="border:1px solid var(--border);border-radius:3px;overflow:hidden;margin-bottom:8px;">
-        <div onclick="toggleGroup('levGroup')" style="background:var(--paper-dark);padding:8px 12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
+        <div onclick="toggleGroup('levGroup','levArrow')" style="background:var(--paper-dark);padding:8px 12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
           <span style="font-family:'DM Mono',monospace;font-size:0.68rem;font-weight:600;">🟡 槓桿 (Beta 2.0x)</span>
           <div style="display:flex;align-items:center;gap:10px;">
             <span id="clecLevTotal" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--gold-dark);">—</span>
-            <span style="font-size:0.7rem;color:var(--muted);">▾</span>
+            <span id="levArrow" style="font-size:0.7rem;color:var(--muted);">▴</span>
           </div>
         </div>
-        <div id="levGroup" style="display:none;">
+        <div id="levGroup" style="display:block;">
           <table class="tbl" style="font-size:0.69rem;">
             <tbody>
               <tr><td><span class="tag lev">2x台</span> 00685L</td><td id="clec685" style="text-align:right;">—</td></tr>
@@ -627,6 +634,9 @@
           <div class="bignum red">$24,547,235</div>
           <div class="sublabel">總負債 · 3筆 · TWD ｜ 月還款合計 $108,396（寬限期）</div>
         </div>
+      </div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);margin-bottom:14px;">
+        ▬ 橫條代表各筆負債佔總負債的比例（房貸2：70% / 房貸1：24% / 車貸：6%）
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;">
         <div>
@@ -917,8 +927,28 @@ function recalc() {
 // ===== UPDATE CLEC PAGE =====
 function updateCLEC() {
   const c = calcCLEC();
-  const triggerPct = 10; // 觸發再平衡的偏離%
+  const triggerPctEl = document.getElementById('triggerPctInput');
+  const triggerPct = triggerPctEl ? parseFloat(triggerPctEl.value) || 10 : 10;
   const needRebalance = Math.abs(c.betaDiffPct) >= triggerPct;
+
+  // 觸發 Beta 上下限
+  const triggerHigh = targetBeta * (1 + triggerPct / 100);
+  const triggerLow  = targetBeta * (1 - triggerPct / 100);
+  const el2 = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
+  el2('triggerHigh', triggerHigh.toFixed(3) + 'x');
+  el2('triggerLow',  triggerLow.toFixed(3)  + 'x');
+
+  // 狀態 badge
+  const statusEl = document.getElementById('clecStatusBadge');
+  if (statusEl) {
+    if (needRebalance) {
+      statusEl.textContent = c.betaDiff > 0 ? '⚡ 過高，賣槓桿' : '⚡ 過低，買槓桿';
+      statusEl.style.color = c.betaDiff > 0 ? 'var(--red)' : 'var(--blue)';
+    } else {
+      statusEl.textContent = '✅ 正常範圍';
+      statusEl.style.color = 'var(--green)';
+    }
+  }
 
   // Beta 數值
   const betaEl = document.getElementById('clecBetaVal');
@@ -1837,9 +1867,15 @@ function initCharts() {
 }
 
 // ===== ACCORDION =====
-function toggleGroup(id) {
+function toggleGroup(id, arrowId) {
   const el = document.getElementById(id);
-  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  if (!el) return;
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  if (arrowId) {
+    const arrow = document.getElementById(arrowId);
+    if (arrow) arrow.textContent = open ? '▾' : '▴';
+  }
 }
 
 initCharts();
