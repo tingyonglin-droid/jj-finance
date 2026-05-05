@@ -1409,16 +1409,20 @@ function renderHoldings() {
   renderGroup('holdingsTbody-tw',     twPos,     twTotal);
   renderGroup('holdingsTbody-crypto', cryptoPos, cryptoTotal);
 
-  // 更新圓餅圖 legend（4類，顯示金額和總佔比）
+  // 更新圓餅圖 legend（4新類，顯示金額和總佔比）
   const legendEl = document.getElementById('pieLegend');
   if (legendEl) {
-    const { total: cashTotal } = getCash();
-    const totalAll = cashTotal + grandTotal;
+    const { total: cashTWD } = getCash();
+    const qqqiVal  = getVal(POSITIONS.find(p=>p.sym==='QQQI') || {sym:'QQQI',shares:0,type:'us'});
+    const clecLev  = POSITIONS.filter(p=>p.role==='CLEC槓桿').reduce((s,p)=>s+getVal(p),0);
+    const growth   = POSITIONS.filter(p=>p.sym!=='QQQI'&&p.role!=='CLEC槓桿').reduce((s,p)=>s+getVal(p),0);
+    const totalAll = cashTWD + qqqiVal + clecLev + growth;
+
     const cats4 = [
-      { icon:'🟡', name:'現金',   val: cashTotal, color: '#C9A96E' },
-      { icon:'🔵', name:'台股',   val: twTotal,   color: '#2473B5' },
-      { icon:'🟠', name:'美股',   val: usTotal,   color: '#D4580A' },
-      { icon:'🟣', name:'加密',   val: cryptoTotal, color: '#9B59B6' },
+      { color:'#D4580A', name:'現金流資產(QQQI)', val: qqqiVal  },
+      { color:'#C9A96E', name:'CLEC現金',         val: cashTWD  },
+      { color:'#2473B5', name:'CLEC槓桿',          val: clecLev  },
+      { color:'#27AE60', name:'長期成長部位',       val: growth   },
     ];
     legendEl.innerHTML = cats4.map(c => {
       const pct = totalAll > 0 ? (c.val/totalAll*100).toFixed(1) : '0';
@@ -1496,26 +1500,30 @@ function saveToFile() {
 // ===== PIE =====
 function updatePie(investTWD, cashTWD) {
   const { exr } = getCash();
-  // 4 類別：現金 / 台股 / 美股 / 加密
-  const twVal     = POSITIONS.filter(p=>p.type==='tw').reduce((s,p)=>s+(prices[p.sym]?p.shares*prices[p.sym]:(JSON_VALS[p.sym]||0)),0);
-  const usVal     = POSITIONS.filter(p=>p.type==='us'&&p.tag!=='crypto').reduce((s,p)=>s+(prices[p.sym]?p.shares*prices[p.sym]*exr:(JSON_VALS[p.sym]||0)),0);
-  const cryptoVal = POSITIONS.filter(p=>p.type==='crypto'||p.tag==='crypto').reduce((s,p)=>s+(prices[p.sym]?p.shares*prices[p.sym]*exr:(JSON_VALS[p.sym]||0)),0);
-  // cashTWD 就是 getCash().total（含台幣三帳戶 + 美股現金換算）
 
-  const total = cashTWD + twVal + usVal + cryptoVal;
+  const getVal = p => {
+    const price = prices[p.sym];
+    if (!price) return JSON_VALS[p.sym] || 0;
+    return p.type === 'tw' ? p.shares * price : p.shares * price * exr;
+  };
+
+  // 4 類別
+  const qqqiVal  = getVal(POSITIONS.find(p=>p.sym==='QQQI') || {sym:'QQQI',shares:0,type:'us'});
+  const clecLev  = POSITIONS.filter(p=>p.role==='CLEC槓桿').reduce((s,p)=>s+getVal(p),0);
+  const growth   = POSITIONS.filter(p=>p.sym!=='QQQI'&&p.role!=='CLEC槓桿').reduce((s,p)=>s+getVal(p),0);
+  // cashTWD = CLEC現金（含台幣三帳戶＋美股現金換算）
+
+  const total = cashTWD + qqqiVal + clecLev + growth;
+
+  const cats = ['現金流資產(QQQI)','CLEC現金','CLEC槓桿','長期成長部位'];
+  const vals = [Math.round(qqqiVal), Math.round(cashTWD), Math.round(clecLev), Math.round(growth)];
 
   if (pieChart) {
-    pieChart.data.datasets[0].data = [
-      Math.round(cashTWD),
-      Math.round(twVal),
-      Math.round(usVal),
-      Math.round(cryptoVal),
-    ];
+    pieChart.data.labels = cats;
+    pieChart.data.datasets[0].data = vals;
     pieChart.options.plugins.tooltip.callbacks.label = (c) => {
-      const val = c.parsed;
-      const pct = total > 0 ? (val/total*100).toFixed(1) : '0';
-      const names = ['現金','台股','美股','加密貨幣'];
-      return ` ${names[c.dataIndex]}: $${Math.round(val).toLocaleString()} (${pct}%)`;
+      const pct = total > 0 ? (c.parsed/total*100).toFixed(1) : '0';
+      return ` ${c.label}: $${Math.round(c.parsed).toLocaleString()} (${pct}%)`;
     };
     pieChart.update();
   }
@@ -1823,19 +1831,21 @@ function initCharts() {
     }
   });
 
-  // Pie: 4 類別 現金/台股/美股/加密
-  const twInit     = POSITIONS.filter(p=>p.type==='tw').reduce((s,p)=>s+(JSON_VALS[p.sym]||0),0);
-  const usInit     = POSITIONS.filter(p=>p.type==='us'&&p.tag!=='crypto').reduce((s,p)=>s+(JSON_VALS[p.sym]||0),0);
-  const cryptoInit = POSITIONS.filter(p=>p.tag==='crypto').reduce((s,p)=>s+(JSON_VALS[p.sym]||0),0);
-  const cashInit   = 10875511;
+  // Pie 初始值（4新類別）
+  const qqqiInit  = JSON_VALS['QQQI'] || 0;
+  const clecLevInit = ['00685L','00631L','QLD'].reduce((s,sym)=>s+(JSON_VALS[sym]||0),0);
+  const cashInit2  = 10875511; // CLEC現金
+  const growthInit = Object.entries(JSON_VALS)
+    .filter(([sym])=>sym!=='QQQI'&&!['00685L','00631L','QLD'].includes(sym))
+    .reduce((s,[,v])=>s+v,0);
 
   pieChart = new Chart(document.getElementById('pieChart').getContext('2d'), {
     type:'doughnut',
     data:{
-      labels:['現金','台股','美股','加密貨幣'],
+      labels:['現金流資產(QQQI)','CLEC現金','CLEC槓桿','長期成長部位'],
       datasets:[{
-        data:[cashInit, twInit, usInit, cryptoInit],
-        backgroundColor:['#C9A96E','#2473B5','#D4580A','#9B59B6'],
+        data:[qqqiInit, cashInit2, clecLevInit, growthInit],
+        backgroundColor:['#D4580A','#C9A96E','#2473B5','#27AE60'],
         borderColor:'white', borderWidth:2
       }]
     },
