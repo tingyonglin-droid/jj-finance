@@ -689,97 +689,104 @@
 <!-- ===== PAGE 5: 負債管理 ===== -->
 <div class="page" id="page-debt">
   <div class="grid g3">
+
+    <!-- 總覽 -->
     <div class="card span3">
       <div class="clabel">負債總覽</div>
-      <div style="display:flex;align-items:baseline;gap:20px;flex-wrap:wrap;margin-bottom:20px;">
+      <div style="display:flex;align-items:baseline;gap:20px;flex-wrap:wrap;margin-bottom:16px;">
         <div>
-          <div class="bignum red">$24,547,235</div>
-          <div class="sublabel">總負債 · 3筆 · TWD ｜ 月還款合計 $108,396（寬限期）</div>
+          <div class="bignum red" id="debtTotal">$24,529,734</div>
+          <div class="sublabel">總負債 · 3筆 · 自動計算 ｜ 每月還款自動從台新扣款</div>
         </div>
       </div>
       <div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);margin-bottom:14px;">
-        ▬ 橫條代表各筆負債佔總負債的比例（房貸2：70% / 房貸1：24% / 車貸：6%）
+        ▬ 橫條代表各筆負債佔原始借款額度的比例 ｜ 餘額每月還款後自動更新
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;">
+
+      <!-- 三筆貸款 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+
+        <!-- 房貸1 -->
         <div>
-          <div class="debt-hd"><span class="debt-name">🏠 房貸 2</span><span class="debt-amt">−$17,165,600</span></div>
-          <div class="debt-bar-bg"><div class="debt-bar" style="width:70%;background:linear-gradient(90deg,#C0392B,#E74C3C);"></div></div>
-          <div class="debt-meta"><span>寬限期 $34,400/月（只還息）</span></div>
-          <div class="debt-meta" style="margin-top:2px;"><span style="color:#E67E22;">⚠️ 37個月後跳升至 $72,182/月</span></div>
-          <div class="debt-meta" style="margin-top:2px;"><span>2067年11月還清 · 499期</span></div>
-          <div style="margin-top:10px;background:var(--paper-dark);border-radius:3px;padding:10px 12px;font-family:'DM Mono',monospace;font-size:0.68rem;line-height:1.8;">
-            <div>本金：$17,165,600</div>
-            <div>利率：2.4%</div>
-            <div>扣款日：每月26日</div>
+          <div class="debt-hd"><span class="debt-name">🏠 房貸1</span><span class="debt-amt" id="loan1-bal">$5,818,622</span></div>
+          <div class="debt-bar-bg"><div class="debt-bar" id="loan1-bar" style="width:83%;background:linear-gradient(90deg,#E74C3C,#E8866E);"></div></div>
+          <div style="background:var(--paper-dark);border-radius:3px;padding:10px 12px;font-family:'DM Mono',monospace;font-size:0.68rem;line-height:2;margin-top:8px;">
+            <div style="display:flex;justify-content:space-between;"><span>類型</span><span id="loan1-type">本息均攤</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>月付</span><span id="loan1-pmt" style="color:var(--charcoal);font-weight:600;">$26,774</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>　利息</span><span id="loan1-int" style="color:var(--muted);">$11,346</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>　本金</span><span id="loan1-prn" style="color:var(--muted);">$15,428</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>利率</span><span>2.34%</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>扣款日</span><span>每月26日</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>還清日</span><span>2049-11-26</span></div>
           </div>
         </div>
+
+        <!-- 房貸2 -->
         <div>
-          <div class="debt-hd"><span class="debt-name">🏠 房貸 1</span><span class="debt-amt">−$5,823,301</span></div>
-          <div class="debt-bar-bg"><div class="debt-bar" style="width:24%;background:linear-gradient(90deg,#E74C3C,#E8866E);"></div></div>
-          <div class="debt-meta"><span>$26,774/月（本息均攤）</span></div>
-          <div class="debt-meta" style="margin-top:2px;"><span>2044年6月還清 · 218期</span></div>
-          <div style="margin-top:10px;background:var(--paper-dark);border-radius:3px;padding:10px 12px;font-family:'DM Mono',monospace;font-size:0.68rem;line-height:1.8;">
-            <div>本金：$5,823,301</div>
-            <div>扣款日：每月26日</div>
+          <div class="debt-hd"><span class="debt-name">🏠 房貸2</span><span class="debt-amt" id="loan2-bal">$17,200,000</span></div>
+          <div class="debt-bar-bg"><div class="debt-bar" id="loan2-bar" style="width:100%;background:linear-gradient(90deg,#C0392B,#E74C3C);"></div></div>
+          <div style="background:var(--paper-dark);border-radius:3px;padding:10px 12px;font-family:'DM Mono',monospace;font-size:0.68rem;line-height:2;margin-top:8px;">
+            <div style="display:flex;justify-content:space-between;"><span>類型</span><span id="loan2-type" style="color:#E67E22;">寬限期（只還息）</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>月付</span><span id="loan2-pmt" style="color:var(--charcoal);font-weight:600;">$33,929</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>　利息</span><span id="loan2-int" style="color:var(--muted);">$33,929</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>　本金</span><span id="loan2-prn" style="color:var(--muted);">$0</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>利率</span><span>2.40%</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>扣款日</span><span>每月26日</span></div>
+            <div style="display:flex;justify-content:space-between;color:#E67E22;"><span>寬限期後</span><span>≈$72,182/月</span></div>
           </div>
         </div>
+
+        <!-- 車貸 -->
         <div>
-          <div class="debt-hd"><span class="debt-name">🚗 車貸</span><span class="debt-amt">−$1,558,334</span></div>
-          <div class="debt-bar-bg"><div class="debt-bar" style="width:6%;background:linear-gradient(90deg,#9B59B6,#B67CC4);"></div></div>
-          <div class="debt-meta"><span>$47,222/月</span></div>
-          <div class="debt-meta" style="margin-top:2px;"><span style="color:var(--green);">✅ 2029年2月還清 · 剩34期</span></div>
-          <div style="margin-top:10px;background:#E8F5E9;border-radius:3px;padding:10px 12px;font-family:'DM Mono',monospace;font-size:0.68rem;line-height:1.8;color:#1a6b33;">
-            <div>還清後月省 $47,222</div>
-            <div>扣款日：每月8日</div>
+          <div class="debt-hd"><span class="debt-name">🚗 車貸</span><span class="debt-amt" id="loan3-bal">$1,511,112</span></div>
+          <div class="debt-bar-bg"><div class="debt-bar" id="loan3-bar" style="width:89%;background:linear-gradient(90deg,#9B59B6,#B67CC4);"></div></div>
+          <div style="background:#E8F5E9;border-radius:3px;padding:10px 12px;font-family:'DM Mono',monospace;font-size:0.68rem;line-height:2;margin-top:8px;color:#1a6b33;">
+            <div style="display:flex;justify-content:space-between;"><span>類型</span><span id="loan3-type">本金平均攤還</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>月付</span><span id="loan3-pmt" style="font-weight:600;">$47,222</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>　利息</span><span id="loan3-int">$0</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>　本金</span><span id="loan3-prn">$47,222</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>利率</span><span>0.00%</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>扣款日</span><span>每月8日</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>還清日</span><span>2028-12-08 ✓</span></div>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- 還款結構三階段 -->
     <div class="card span3">
-      <div class="clabel">還款結構三階段（月需求均 $175,000）</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+      <div class="clabel">還款結構三階段</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
         <div style="border:1px solid var(--border);border-radius:3px;overflow:hidden;">
-          <div style="background:#FFEBE8;padding:8px 14px;font-family:'DM Mono',monospace;font-size:0.68rem;font-weight:600;color:#C0392B;display:flex;justify-content:space-between;">
-            <span>現在 → 2029.02</span><span>寬限+車貸</span>
-          </div>
-          <div style="padding:12px 14px;font-family:'DM Mono',monospace;font-size:0.72rem;line-height:2.2;">
-            <div style="display:flex;justify-content:space-between;"><span>房貸2</span><span>$34,400</span></div>
+          <div style="background:#FFEBE8;padding:8px 12px;font-family:'DM Mono',monospace;font-size:0.65rem;font-weight:600;color:#C0392B;display:flex;justify-content:space-between;"><span>現在 → 2029.03</span><span>寬限+車貸</span></div>
+          <div style="padding:10px 12px;font-family:'DM Mono',monospace;font-size:0.7rem;line-height:2.1;">
+            <div style="display:flex;justify-content:space-between;"><span>房貸2（利息）</span><span>$33,929</span></div>
             <div style="display:flex;justify-content:space-between;"><span>房貸1</span><span>$26,774</span></div>
             <div style="display:flex;justify-content:space-between;color:#E67E22;"><span>車貸</span><span>$47,222</span></div>
           </div>
-          <div style="padding:8px 14px;background:var(--paper-dark);font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);border-top:1px solid var(--border);">
-            月還款 $108,396 ｜ 生活費 $66,604
-          </div>
+          <div style="padding:6px 12px;background:var(--paper-dark);font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);border-top:1px solid var(--border);">月還款 $107,925</div>
         </div>
         <div style="border:1px solid var(--border);border-radius:3px;overflow:hidden;">
-          <div style="background:#E8F5E9;padding:8px 14px;font-family:'DM Mono',monospace;font-size:0.68rem;font-weight:600;color:#27AE60;display:flex;justify-content:space-between;">
-            <span>2029.02 → 2029.05</span><span>甜蜜3個月</span>
-          </div>
-          <div style="padding:12px 14px;font-family:'DM Mono',monospace;font-size:0.72rem;line-height:2.2;">
-            <div style="display:flex;justify-content:space-between;"><span>房貸2</span><span>$34,400</span></div>
+          <div style="background:#E8F5E9;padding:8px 12px;font-family:'DM Mono',monospace;font-size:0.65rem;font-weight:600;color:#27AE60;display:flex;justify-content:space-between;"><span>2029.03 → 2029.12</span><span>甜蜜視窗</span></div>
+          <div style="padding:10px 12px;font-family:'DM Mono',monospace;font-size:0.7rem;line-height:2.1;">
+            <div style="display:flex;justify-content:space-between;"><span>房貸2（利息）</span><span>$33,929</span></div>
             <div style="display:flex;justify-content:space-between;"><span>房貸1</span><span>$26,774</span></div>
             <div style="display:flex;justify-content:space-between;color:var(--green);"><span>車貸</span><span>$0 ✓</span></div>
           </div>
-          <div style="padding:8px 14px;background:#E8F5E9;font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--green);border-top:1px solid var(--border);">
-            月還款 $61,174 ｜ 生活費 $113,826 ✅
-          </div>
+          <div style="padding:6px 12px;background:#E8F5E9;font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--green);border-top:1px solid var(--border);">月還款 $60,703 ✅</div>
         </div>
         <div style="border:1px solid var(--border);border-radius:3px;overflow:hidden;">
-          <div style="background:#FFF3E0;padding:8px 14px;font-family:'DM Mono',monospace;font-size:0.68rem;font-weight:600;color:#E67E22;display:flex;justify-content:space-between;">
-            <span>2029.05 以後</span><span>房貸2跳升</span>
-          </div>
-          <div style="padding:12px 14px;font-family:'DM Mono',monospace;font-size:0.72rem;line-height:2.2;">
-            <div style="display:flex;justify-content:space-between;color:#E67E22;"><span>房貸2 ↑</span><span>$72,182</span></div>
+          <div style="background:#FFF3E0;padding:8px 12px;font-family:'DM Mono',monospace;font-size:0.65rem;font-weight:600;color:#E67E22;display:flex;justify-content:space-between;"><span>2029.12 以後</span><span>房貸2跳升</span></div>
+          <div style="padding:10px 12px;font-family:'DM Mono',monospace;font-size:0.7rem;line-height:2.1;">
+            <div style="display:flex;justify-content:space-between;color:#E67E22;"><span>房貸2 ↑</span><span>≈$72,182</span></div>
             <div style="display:flex;justify-content:space-between;"><span>房貸1</span><span>$26,774</span></div>
             <div style="display:flex;justify-content:space-between;color:var(--green);"><span>車貸</span><span>$0 ✓</span></div>
           </div>
-          <div style="padding:8px 14px;background:var(--paper-dark);font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);border-top:1px solid var(--border);">
-            月還款 $98,956 ｜ 生活費 $76,044
-          </div>
+          <div style="padding:6px 12px;background:var(--paper-dark);font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);border-top:1px solid var(--border);">月還款 ≈$98,956</div>
         </div>
       </div>
     </div>
+
   </div>
 </div>
 
@@ -883,8 +890,221 @@ const CLEC_ASSETS = [
   }},
 ];
 
-const LIABILITIES = 24547235;
+const LIABILITIES_INIT = 24547235; // 初始負債（系統啟動時）
 const QQQI_AVG_DIV = 0.6314;
+
+// ===== 貸款設定 =====
+// 所有貸款餘額存在 Sheets，系統每月自動計算
+const LOANS_CONFIG = [
+  {
+    id:       'loan1',
+    name:     '房貸1',
+    icon:     '🏠',
+    payDay:   26,         // 每月26日扣款
+    rate:     0.0234,     // 年利率 2.34%
+    payment:  26774,      // 固定月付
+    type:     'annuity',  // 本息均攤
+    endDate:  '2049-11-26',
+    periods:  360,
+    startPeriod: 78,      // 截圖期別（下期）
+  },
+  {
+    id:       'loan2',
+    name:     '房貸2',
+    icon:     '🏠',
+    payDay:   26,
+    rate:     0.024,      // 年利率 2.40%
+    payment:  33929,      // 寬限期只還息（截圖數字）
+    type:     'interest', // 寬限期（只還息）
+    endDate:  '2056-03-12',
+    periods:  360,
+    startPeriod: 2,
+    gracePeriodEnd: '2029-03-12', // 預估寬限期結束（約36個月）
+    fullPayment: 72182,   // 寬限期結束後月付
+  },
+  {
+    id:       'loan3',
+    name:     '車貸',
+    icon:     '🚗',
+    payDay:   8,          // 每月8日扣款
+    rate:     0.0,        // 0% 利率
+    payment:  47222,      // 固定月付
+    type:     'annuity',
+    endDate:  '2028-12-08',
+    periods:  36,
+    startPeriod: 5,
+  },
+];
+
+// 貸款餘額（從Sheets載入，初始值來自截圖）
+let loanBalances = {
+  loan1: 5818622,
+  loan2: 17200000,
+  loan3: 1511112,
+};
+
+// 上次更新日期
+let loanLastUpdated = null;
+
+// ===== 計算總負債 =====
+function getTotalLiabilities() {
+  return loanBalances.loan1 + loanBalances.loan2 + loanBalances.loan3;
+}
+
+// ===== 計算本月應還款金額 =====
+function getMonthlyPayment(loan) {
+  const now = new Date();
+  if (loan.type === 'interest') {
+    // 寬限期：只還息
+    const grace = new Date(loan.gracePeriodEnd);
+    if (now < grace) {
+      return { principal: 0, interest: loan.payment, total: loan.payment, isGrace: true };
+    } else {
+      return { principal: loan.fullPayment - Math.round(loanBalances[loan.id] * loan.rate / 12),
+               interest: Math.round(loanBalances[loan.id] * loan.rate / 12),
+               total: loan.fullPayment, isGrace: false };
+    }
+  } else {
+    // 本息均攤
+    const r = loan.rate / 12;
+    const interest = r > 0 ? Math.round(loanBalances[loan.id] * r) : 0;
+    const principal = loan.payment - interest;
+    return { principal, interest, total: loan.payment, isGrace: false };
+  }
+}
+
+// ===== 執行還款（更新餘額）=====
+function executePayment(loanId) {
+  const loan = LOANS_CONFIG.find(l => l.id === loanId);
+  if (!loan) return;
+  const pmt = getMonthlyPayment(loan);
+  loanBalances[loanId] = Math.max(0, loanBalances[loanId] - pmt.principal);
+  loanLastUpdated = new Date().toISOString();
+}
+
+// ===== 偵測今天是否為還款日 =====
+function checkPaymentDue() {
+  const today = new Date();
+  const day = today.getDate();
+  const due = [];
+
+  LOANS_CONFIG.forEach(loan => {
+    if (day === loan.payDay) {
+      // 檢查這個月是否已還過
+      const monthKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
+      const paidKey  = `${loan.id}_paid_${monthKey}`;
+      if (!sessionStorage.getItem(paidKey)) {
+        due.push(loan);
+      }
+    }
+  });
+
+  if (due.length > 0) showPaymentPrompt(due);
+}
+
+// ===== 顯示還款提示 =====
+function showPaymentPrompt(dueLoans) {
+  const existing = document.getElementById('paymentPrompt');
+  if (existing) existing.remove();
+
+  const total = dueLoans.reduce((s, l) => s + getMonthlyPayment(l).total, 0);
+  const names = dueLoans.map(l => `${l.icon} ${l.name} $${getMonthlyPayment(l).total.toLocaleString()}`).join('、');
+
+  const banner = document.createElement('div');
+  banner.id = 'paymentPrompt';
+  banner.style.cssText = `
+    background:#FFF3E0;border-left:4px solid #E67E22;padding:12px 16px;
+    font-family:'DM Mono',monospace;font-size:0.72rem;color:#7a3e00;
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;
+  `;
+  banner.innerHTML = `
+    <span>⏰ 今天是還款日！${names} · 合計 <strong>$${total.toLocaleString()}</strong></span>
+    <div style="display:flex;gap:8px;">
+      <button onclick="confirmPayment([${dueLoans.map(l=>"'"+l.id+"'").join(',')}])"
+        style="background:#E67E22;color:white;border:none;padding:6px 14px;border-radius:3px;cursor:pointer;font-family:'DM Mono',monospace;font-size:0.69rem;">
+        ✅ 確認還款，從台新扣款
+      </button>
+      <button onclick="document.getElementById('paymentPrompt').remove()"
+        style="background:none;border:1px solid #E67E22;color:#E67E22;padding:6px 10px;border-radius:3px;cursor:pointer;font-family:'DM Mono',monospace;font-size:0.69rem;">
+        略過
+      </button>
+    </div>
+  `;
+
+  // 插入在 status-bar 後面
+  const statusBar = document.querySelector('.status-bar');
+  if (statusBar) statusBar.insertAdjacentElement('afterend', banner);
+}
+
+// ===== 確認還款 =====
+async function confirmPayment(loanIds) {
+  const today = new Date();
+  const monthKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
+  let totalDeducted = 0;
+
+  loanIds.forEach(id => {
+    const loan = LOANS_CONFIG.find(l => l.id === id);
+    const pmt  = getMonthlyPayment(loan);
+    executePayment(id);
+    totalDeducted += pmt.total;
+    // 記錄本月已還（session 存活到關閉瀏覽器）
+    sessionStorage.setItem(`${id}_paid_${monthKey}`, '1');
+  });
+
+  // 從台新帳戶扣款
+  const cash2El = document.getElementById('cash2');
+  const currentCash2 = parseFloat(cash2El.value) || 0;
+  cash2El.value = Math.max(0, currentCash2 - totalDeducted);
+  updateCash();
+
+  // 存回 Sheets
+  await saveCashToSheets();
+
+  // 移除提示
+  const prompt = document.getElementById('paymentPrompt');
+  if (prompt) prompt.remove();
+
+  // 更新負債頁面
+  renderDebtPage();
+  setStatus('ok', `✅ 已還款 $${totalDeducted.toLocaleString()}，台新帳戶已扣除`);
+
+  alert(`還款完成！\n合計扣款：$${totalDeducted.toLocaleString()}\n台新餘額：$${parseInt(cash2El.value).toLocaleString()}`);
+}
+
+// ===== 渲染負債頁面 =====
+function renderDebtPage() {
+  const total = getTotalLiabilities();
+
+  // 更新總負債顯示
+  const totalEl = document.getElementById('debtTotal');
+  if (totalEl) totalEl.textContent = '$' + total.toLocaleString();
+
+  // 更新各貸款
+  LOANS_CONFIG.forEach(loan => {
+    const bal = loanBalances[loan.id];
+    const pmt = getMonthlyPayment(loan);
+
+    const balEl  = document.getElementById(`${loan.id}-bal`);
+    const pmtEl  = document.getElementById(`${loan.id}-pmt`);
+    const intEl  = document.getElementById(`${loan.id}-int`);
+    const prnEl  = document.getElementById(`${loan.id}-prn`);
+    const barEl  = document.getElementById(`${loan.id}-bar`);
+    const typeEl = document.getElementById(`${loan.id}-type`);
+
+    if (balEl)  balEl.textContent  = '$' + bal.toLocaleString();
+    if (pmtEl)  pmtEl.textContent  = '$' + pmt.total.toLocaleString();
+    if (intEl)  intEl.textContent  = '$' + pmt.interest.toLocaleString();
+    if (prnEl)  prnEl.textContent  = '$' + pmt.principal.toLocaleString();
+    if (barEl)  barEl.style.width  = (bal / loan[loan.id === 'loan2' ? 'principal' : 'periods'] > 0
+      ? Math.min(bal / (loan.id === 'loan1' ? 7000000 : loan.id === 'loan2' ? 17200000 : 1700000) * 100, 100) : 0) + '%';
+    if (typeEl) typeEl.textContent = pmt.isGrace ? '寬限期（只還息）' : '本息均攤';
+  });
+
+  // 更新 LIABILITIES 讓 recalc 用
+  window._dynamicLiabilities = total;
+}
+
+const LIABILITIES = getTotalLiabilities();
 let prices = {};
 let pieChart;
 let targetBeta = 1.0; // 可調式目標Beta
@@ -971,14 +1191,14 @@ function recalc() {
     totalExposure += val * (p.exp || 1);
   });
 
+  const totalLiabilities = window._dynamicLiabilities || getTotalLiabilities();
   const totalAssets = cashTWD + investTWD;
-  const netWorth    = totalAssets - LIABILITIES;
-  // 投資槓桿 = 總曝險（排除現金，槓桿ETF已放大）÷ 淨資產
+  const netWorth    = totalAssets - totalLiabilities;
   const investLev   = netWorth > 0 ? totalExposure / netWorth : 0;
 
   document.getElementById('netWorthDisplay').textContent = fmt(netWorth);
   document.getElementById('netWorthSub').textContent =
-    `總資產 ${fmt(totalAssets)} − 負債 ${fmt(LIABILITIES)} ｜ 總曝險 ${fmt(totalExposure)} ｜ 匯率 ${exr}`;
+    `總資產 ${fmt(totalAssets)} − 負債 ${fmt(totalLiabilities)} ｜ 總曝險 ${fmt(totalExposure)} ｜ 匯率 ${exr}`;
   document.getElementById('investStat').textContent   = fmt(investTWD);
   document.getElementById('leverageStat').textContent = investLev.toFixed(2) + 'x';
 
@@ -1279,6 +1499,7 @@ async function saveCashToSheets() {
         cash1: c1, cash2: c2, cash3: c3, cashUSD: usd,
         targetBeta: targetBeta,
         annualTarget: annualTarget,
+        loanBalances: loanBalances,
         positions: POSITIONS.map(p => ({
           sym: p.sym, shares: p.shares, cost: p.cost,
           type: p.type, role: p.role
@@ -1320,6 +1541,11 @@ async function autoLoadCash() {
       if (savedCash.monthlyNW && savedCash.monthlyNW.length > 0) {
         monthlyNW = savedCash.monthlyNW;
       }
+      // 載入貸款餘額
+      if (savedCash.loanBalances) {
+        loanBalances = { ...loanBalances, ...savedCash.loanBalances };
+        window._dynamicLiabilities = getTotalLiabilities();
+      }
     }
     if (exr) document.getElementById('exrInput').value = exr.toFixed(2);
     updateCash();
@@ -1335,6 +1561,8 @@ async function autoLoadCash() {
     setTimeout(() => {
       recalc();
       renderNWMonthChart();
+      renderDebtPage();
+      checkPaymentDue();
       const now = new Date().toLocaleString('zh-TW', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
       document.getElementById('lastUpdate').textContent = `上次更新：${now} · 自動載入`;
       if (fail.length === 0) {
