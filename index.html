@@ -426,6 +426,45 @@
         <span id="a-annual" style="font-family:'DM Mono',monospace;font-size:0.88rem;font-weight:600;color:var(--green);">—</span>
       </div>
 
+      <!-- 生活費計算 -->
+      <div style="margin-top:6px;border:1px solid var(--border);border-radius:3px;overflow:hidden;">
+        <div style="background:var(--paper-dark);padding:7px 14px;font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);display:flex;justify-content:space-between;">
+          <span>🏠 生活費試算（均值年領 − 年還款）</span>
+          <span id="a-loan-annual" style="color:var(--muted);">年還款 —</span>
+        </div>
+        <div style="padding:10px 14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="stat">
+            <div style="font-family:'DM Mono',monospace;font-size:0.59rem;color:var(--muted);margin-bottom:4px;">年生活費</div>
+            <div id="a-living-annual" style="font-family:'DM Mono',monospace;font-size:0.88rem;font-weight:600;color:var(--charcoal);">—</div>
+          </div>
+          <div class="stat">
+            <div style="font-family:'DM Mono',monospace;font-size:0.59rem;color:var(--muted);margin-bottom:4px;">月生活費</div>
+            <div id="a-living-monthly" style="font-family:'DM Mono',monospace;font-size:0.88rem;font-weight:600;color:var(--charcoal);">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 生活費計算 -->
+      <div style="margin-top:6px;background:#E8F5E9;border-radius:3px;padding:10px 14px;font-family:'DM Mono',monospace;font-size:0.68rem;line-height:2;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="color:var(--muted);">均值年領</span>
+          <span id="lv-annual-income" style="color:var(--green);font-weight:500;">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="color:var(--muted);">− 年負債還款</span>
+          <span id="lv-annual-debt" style="color:var(--red);">—</span>
+        </div>
+        <div style="height:1px;background:rgba(39,174,96,0.3);margin:4px 0;"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="color:var(--charcoal);font-weight:600;">年生活費</span>
+          <span id="lv-annual-living" style="color:var(--charcoal);font-weight:700;font-size:0.82rem;">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="color:var(--muted);">月平均生活費</span>
+          <span id="lv-monthly-living" style="color:var(--gold-dark);font-weight:600;font-size:0.82rem;">—</span>
+        </div>
+      </div>
+
       <div class="info-box ib" style="margin-top:10px;" id="cov-summary">計算中…</div>
     </div>
 
@@ -1430,6 +1469,24 @@ function updateCoverageCards() {
   el('a-annual',  '$' + avgAnnualTWD.toLocaleString() + '/年');
   el('a-monthly', '$' + actualMonthlyAfterTax.toLocaleString());
   el('a-tax-refund', '$' + actualTaxRefund.toLocaleString());
+
+  // 生活費計算：均值年領 − 年還款
+  const monthlyLoan  = getTotalLiabilities ? 0 : 0; // 取目前月還款
+  const loan1m = 26774, loan2m = 33929, loan3m = 47222; // 月還款（寬限期）
+  // 判斷車貸是否已還清（2028-12-08後）
+  const now2 = new Date();
+  const carDone = now2 >= new Date('2028-12-08');
+  const currentMonthlyLoan = loan1m + loan2m + (carDone ? 0 : loan3m);
+  const currentAnnualLoan  = currentMonthlyLoan * 12;
+  const livingAnnual  = avgAnnualTWD - currentAnnualLoan;
+  const livingMonthly = Math.round(livingAnnual / 12);
+  const livingColor   = livingAnnual >= 0 ? 'var(--green)' : 'var(--red)';
+
+  el('a-loan-annual', `年還款 $${currentAnnualLoan.toLocaleString()}`);
+  const laEl = document.getElementById('a-living-annual');
+  const lmEl = document.getElementById('a-living-monthly');
+  if (laEl) { laEl.textContent = '$' + Math.round(livingAnnual).toLocaleString(); laEl.style.color = livingColor; }
+  if (lmEl) { lmEl.textContent = '$' + livingMonthly.toLocaleString(); lmEl.style.color = livingColor; }
 
   // 對比目標的月領（稅前，用來比較）
   const monthlyTarget = Math.round(annualTarget / 12);
