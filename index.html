@@ -231,7 +231,7 @@
     <div class="header-sub" id="lastUpdate">換股完成 · 2026-04-28 · NVDL 662股全數出清 → QQQI 3,603股 + NVDA 166股 · IBIT 原有部位確認</div>
   </div>
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-    <button class="update-btn" id="updateBtn" onclick="updateAll()">
+    <button type="button" class="update-btn" id="updateBtn" onclick="updateAll()">
       <span id="btnIcon">⟳</span> 一鍵更新股價
     </button>
   </div>
@@ -300,7 +300,7 @@
           <div class="bignum gold" id="netWorthDisplay">$28,880,007</div>
           <div class="sublabel" id="netWorthSub">總資產 − 負債 $24,547,235 ｜ 投資槓桿 · 匯率</div>
         </div>
-        <button onclick="recordMonthlyNetWorth()" id="recordBtn"
+        <button type="button" onclick="recordMonthlyNetWorth()" id="recordBtn"
           style="display:flex;align-items:center;gap:7px;background:var(--gold-dark);color:white;border:none;padding:9px 16px;border-radius:3px;font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;cursor:pointer;transition:background .2s;"
           onmouseover="this.style.background='#6b4f10'" onmouseout="this.style.background='var(--gold-dark)'">
           📌 記錄本月淨資產
@@ -843,8 +843,8 @@
     <div class="card span2">
       <div class="clabel">編輯持倉 · Holdings Editor</div>
       <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
-        <button onclick="addRow()" style="background:var(--green);color:white;border:none;padding:7px 14px;border-radius:3px;font-family:'DM Mono',monospace;font-size:0.7rem;cursor:pointer;">＋ 新增持股</button>
-        <button onclick="savePositions()" style="background:var(--charcoal);color:white;border:none;padding:7px 14px;border-radius:3px;font-family:'DM Mono',monospace;font-size:0.7rem;cursor:pointer;">💾 儲存並同步 Sheets</button>
+        <button type="button" onclick="addRow()" style="background:var(--green);color:white;border:none;padding:7px 14px;border-radius:3px;font-family:'DM Mono',monospace;font-size:0.7rem;cursor:pointer;">＋ 新增持股</button>
+        <button type="button" onclick="savePositions()" style="background:var(--charcoal);color:white;border:none;padding:7px 14px;border-radius:3px;font-family:'DM Mono',monospace;font-size:0.7rem;cursor:pointer;">💾 儲存並同步 Sheets</button>
         <span id="editStatus" style="font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--muted);"></span>
       </div>
 
@@ -1066,11 +1066,11 @@ function showPaymentPrompt(dueLoans) {
   banner.innerHTML = `
     <span>⏰ 今天是還款日！${names} · 合計 <strong>$${total.toLocaleString()}</strong></span>
     <div style="display:flex;gap:8px;">
-      <button onclick="confirmPayment([${dueLoans.map(l=>"'"+l.id+"'").join(',')}])"
+      <button type="button" onclick="confirmPayment([${dueLoans.map(l=>"'"+l.id+"'").join(',')}])"
         style="background:#E67E22;color:white;border:none;padding:6px 14px;border-radius:3px;cursor:pointer;font-family:'DM Mono',monospace;font-size:0.69rem;">
         ✅ 確認還款，從台新扣款
       </button>
-      <button onclick="document.getElementById('paymentPrompt').remove()"
+      <button type="button" onclick="document.getElementById('paymentPrompt').remove()"
         style="background:none;border:1px solid #E67E22;color:#E67E22;padding:6px 10px;border-radius:3px;cursor:pointer;font-family:'DM Mono',monospace;font-size:0.69rem;">
         略過
       </button>
@@ -1192,7 +1192,7 @@ function calcCLEC() {
 
 // ===== 現金計算 =====
 function getCash() {
-  const exr = parseFloat(document.getElementById('exrInput').value) || 31.52;
+  const exr = parseFloat(document.getElementById('exrInput').value) || DEFAULT_EXR;
   const c1  = parseFloat(document.getElementById('cash1').value)  || 0;
   const c2  = parseFloat(document.getElementById('cash2').value)  || 0;
   const c3  = parseFloat(document.getElementById('cash3').value)  || 0;
@@ -1202,6 +1202,7 @@ function getCash() {
 }
 
 function fmt(n) { return '$' + Math.round(n).toLocaleString(); }
+function el(id, v) { const e = document.getElementById(id); if (e) e.textContent = v; }
 
 function updateCash() {
   const { c1, c2, c3, usdTWD, total, exr } = getCash();
@@ -1266,9 +1267,8 @@ function updateCLEC() {
   // 觸發 Beta 上下限
   const triggerHigh = targetBeta * (1 + triggerPct / 100);
   const triggerLow  = targetBeta * (1 - triggerPct / 100);
-  const el2 = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
-  el2('triggerHigh', triggerHigh.toFixed(3) + 'x');
-  el2('triggerLow',  triggerLow.toFixed(3)  + 'x');
+  el('triggerHigh', triggerHigh.toFixed(3) + 'x');
+  el('triggerLow',  triggerLow.toFixed(3)  + 'x');
 
   // 狀態 badge
   const statusEl = document.getElementById('clecStatusBadge');
@@ -1422,7 +1422,8 @@ function setTargetBeta(val) {
 }
 // ===== 年領目標（可手動修改）=====
 let annualTarget = 2100000;
-const TAX_RATE = 0.30; // 預扣稅率30%
+const TAX_RATE = 0.30;    // 預扣稅率30%
+const DEFAULT_EXR = 31.52; // 預設美元匯率（無法從Sheets取得時使用）
 
 function updateAnnualTarget() {
   const val = parseFloat(document.getElementById('annualTargetInput').value) || 2100000;
@@ -1432,7 +1433,6 @@ function updateAnnualTarget() {
   const monthlyAfterTax = Math.round(val * (1 - TAX_RATE) / 12);
   const annualTaxRefund = Math.round(val * TAX_RATE);
 
-  const el = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
   el('annualTargetDisplay', `$${wan}萬`);
   el('t-avg-monthly',  '$' + avgMonthly.toLocaleString());
   el('t-monthly',      '$' + monthlyAfterTax.toLocaleString());
@@ -1448,18 +1448,17 @@ function updateCoverageCards() {
   const qqqiPrice  = prices['QQQI'] || 0;
 
   // 更新持股顯示
-  const el = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
   el('qqqiSharesStat', qqqiShares.toLocaleString() + '股');
   if (qqqiPrice) el('cfQqqiPrice', '$' + qqqiPrice.toFixed(2));
 
   // 年化殖利率
   if (qqqiPrice > 0) {
-    const yieldPct = (0.6314 * 12 / qqqiPrice * 100).toFixed(2);
+    const yieldPct = (QQQI_AVG_DIV * 12 / qqqiPrice * 100).toFixed(2);
     el('cfYield', yieldPct + '%');
   }
 
   // 目前配置：近12月均值年領/月領/退稅
-  const avgMonthlyTWD = Math.round(qqqiShares * 0.6314 * exr);
+  const avgMonthlyTWD = Math.round(qqqiShares * QQQI_AVG_DIV * exr);
   const avgAnnualTWD  = avgMonthlyTWD * 12;
   const actualMonthlyAfterTax = Math.round(avgMonthlyTWD * (1 - TAX_RATE));
   const actualTaxRefund       = Math.round(avgAnnualTWD * TAX_RATE);
@@ -1471,11 +1470,12 @@ function updateCoverageCards() {
   el('a-tax-refund', '$' + actualTaxRefund.toLocaleString());
 
   // 生活費計算：均值年領 − 年還款
-  const monthlyLoan  = getTotalLiabilities ? 0 : 0; // 取目前月還款
-  const loan1m = 26774, loan2m = 33929, loan3m = 47222; // 月還款（寬限期）
   // 判斷車貸是否已還清（2028-12-08後）
   const now2 = new Date();
   const carDone = now2 >= new Date('2028-12-08');
+  const loan1m = LOANS_CONFIG.find(l => l.id === 'loan1').payment;
+  const loan2m = LOANS_CONFIG.find(l => l.id === 'loan2').payment;
+  const loan3m = LOANS_CONFIG.find(l => l.id === 'loan3').payment;
   const currentMonthlyLoan = loan1m + loan2m + (carDone ? 0 : loan3m);
   const currentAnnualLoan  = currentMonthlyLoan * 12;
   const livingAnnual  = avgAnnualTWD - currentAnnualLoan;
@@ -1559,6 +1559,7 @@ async function saveCashToSheets() {
   try {
     await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
+      signal: AbortSignal.timeout(15000),
       body: JSON.stringify({
         cash1: c1, cash2: c2, cash3: c3, cashUSD: usd,
         targetBeta: targetBeta,
@@ -1715,7 +1716,6 @@ function renderHoldings() {
 
   // 群組標題更新
   const fmtPct = (v,t) => t>0 ? (v/t*100).toFixed(1)+'%' : '—';
-  const el = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
   el('us-group-total',     `${fmt(usTotal)} · 總${fmtPct(usTotal,grandTotal)}`);
   el('tw-group-total',     `${fmt(twTotal)} · 總${fmtPct(twTotal,grandTotal)}`);
   el('crypto-group-total', `${fmt(cryptoTotal)} · 總${fmtPct(cryptoTotal,grandTotal)}`);
@@ -1926,7 +1926,7 @@ function renderEditTable() {
         </select>
       </td>
       <td style="text-align:center;">
-        <button onclick="deleteRow(${i})"
+        <button type="button" onclick="deleteRow(${i})"
           style="background:#FFEBE8;color:var(--red);border:none;width:26px;height:26px;border-radius:3px;cursor:pointer;font-size:0.85rem;">✕</button>
       </td>
     </tr>`).join('');
@@ -1974,6 +1974,7 @@ async function savePositions() {
     const { c1, c2, c3, usd } = getCash();
     await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
+      signal: AbortSignal.timeout(15000),
       body: JSON.stringify({
         cash1: c1, cash2: c2, cash3: c3, cashUSD: usd,
         targetBeta: targetBeta,
@@ -2044,6 +2045,7 @@ async function recordMonthlyNetWorth() {
   try {
     await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
+      signal: AbortSignal.timeout(15000),
       body: JSON.stringify({
         cash1: parseFloat(document.getElementById('cash1').value)||0,
         cash2: parseFloat(document.getElementById('cash2').value)||0,
@@ -2289,7 +2291,7 @@ function showManualInput(failedSyms) {
   modal.innerHTML = `
     <div style="padding:14px 16px 10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
       <span style="font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);">✏️ 手動輸入股價（USD）</span>
-      <button onclick="document.getElementById('manualModal').remove()"
+      <button type="button" onclick="document.getElementById('manualModal').remove()"
         style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:1rem;line-height:1;">×</button>
     </div>
     <div style="padding:12px 16px;">
@@ -2298,8 +2300,8 @@ function showManualInput(failedSyms) {
       </div>
       ${fields}
       <div style="display:flex;gap:8px;margin-top:10px;">
-        <button onclick="applyManual()" style="flex:1;background:var(--charcoal);color:white;border:none;padding:8px;border-radius:3px;cursor:pointer;font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;">套用</button>
-        <button onclick="document.getElementById('manualModal').remove()" style="background:var(--paper-dark);color:var(--muted);border:none;padding:8px 12px;border-radius:3px;cursor:pointer;font-family:'DM Mono',monospace;font-size:0.7rem;">取消</button>
+        <button type="button" onclick="applyManual()" style="flex:1;background:var(--charcoal);color:white;border:none;padding:8px;border-radius:3px;cursor:pointer;font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;">套用</button>
+        <button type="button" onclick="document.getElementById('manualModal').remove()" style="background:var(--paper-dark);color:var(--muted);border:none;padding:8px 12px;border-radius:3px;cursor:pointer;font-family:'DM Mono',monospace;font-size:0.7rem;">取消</button>
       </div>
     </div>
   `;
@@ -2325,7 +2327,7 @@ function applyManual() {
 
 // 按鈕：手動輸入
 document.querySelector('.header-right').insertAdjacentHTML('afterbegin',
-  `<button onclick="showManualInput(POSITIONS.map(p=>p.sym))"
+  `<button type="button" onclick="showManualInput(POSITIONS.map(p=>p.sym))"
     style="display:flex;align-items:center;gap:6px;background:var(--paper-dark);color:var(--charcoal);border:1px solid var(--border);padding:7px 13px;border-radius:3px;font-family:'DM Mono',monospace;font-size:0.68rem;cursor:pointer;">
     ✏️ 手動輸入股價
   </button>`
