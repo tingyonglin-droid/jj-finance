@@ -54,7 +54,7 @@
   .tab.active{color:var(--gold-dark);border-bottom-color:var(--gold);}
   .tab:hover:not(.active){color:var(--charcoal);}
 
-  .page{display:none;padding:22px 40px;}
+  .page{display:none;padding:22px 40px;overflow-x:hidden;}
   .page.active{display:block;}
 
   .grid{display:grid;gap:16px;}
@@ -624,21 +624,21 @@
       <!-- 配置條 -->
       <div style="margin-top:14px;">
         <div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);margin-bottom:5px;">配置比例</div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-          <span style="font-family:'DM Mono',monospace;font-size:0.63rem;width:26px;color:var(--muted);">目前</span>
-          <div style="flex:1;height:7px;background:var(--paper-dark);border-radius:4px;overflow:hidden;display:flex;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+          <span style="font-family:'DM Mono',monospace;font-size:0.63rem;flex-shrink:0;color:var(--muted);">目前</span>
+          <div style="flex:1;min-width:0;height:7px;background:var(--paper-dark);border-radius:4px;overflow:hidden;display:flex;">
             <div id="clecCashBar" style="height:100%;background:var(--blue);opacity:0.75;transition:width .5s;width:40%;"></div>
             <div id="clecLevBar"  style="height:100%;background:var(--gold);transition:width .5s;width:60%;"></div>
           </div>
-          <span style="font-family:'DM Mono',monospace;font-size:0.63rem;width:70px;text-align:right;"><span id="clecCashPct">—</span> / <span id="clecLevPct">—</span></span>
+          <span style="font-family:'DM Mono',monospace;font-size:0.63rem;flex-shrink:0;white-space:nowrap;"><span id="clecCashPct">—</span> / <span id="clecLevPct">—</span></span>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-family:'DM Mono',monospace;font-size:0.63rem;width:26px;color:var(--muted);">目標</span>
-          <div style="flex:1;height:7px;background:var(--paper-dark);border-radius:4px;overflow:hidden;display:flex;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-family:'DM Mono',monospace;font-size:0.63rem;flex-shrink:0;color:var(--muted);">目標</span>
+          <div style="flex:1;min-width:0;height:7px;background:var(--paper-dark);border-radius:4px;overflow:hidden;display:flex;">
             <div id="clecTCashBar" style="height:100%;background:var(--blue);opacity:0.4;transition:width .5s;width:50%;"></div>
             <div id="clecTLevBar"  style="height:100%;background:var(--gold);opacity:0.4;transition:width .5s;width:50%;"></div>
           </div>
-          <span style="font-family:'DM Mono',monospace;font-size:0.63rem;width:70px;text-align:right;color:var(--muted);">目標配比</span>
+          <span style="font-family:'DM Mono',monospace;font-size:0.63rem;flex-shrink:0;color:var(--muted);">目標配比</span>
         </div>
       </div>
     </div>
@@ -848,16 +848,16 @@
         <span id="editStatus" style="font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--muted);"></span>
       </div>
 
-      <div style="overflow-x:auto;">
-        <table class="tbl" id="editTable">
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -14px;padding:0 14px;">
+        <table class="tbl" id="editTable" style="min-width:480px;">
           <thead>
             <tr>
-              <th style="text-align:left;min-width:80px;">代號</th>
-              <th style="text-align:left;min-width:60px;">類型</th>
-              <th style="min-width:80px;">股數</th>
-              <th style="min-width:80px;">均價</th>
+              <th style="text-align:left;min-width:72px;">代號</th>
+              <th style="text-align:left;min-width:76px;">類型</th>
+              <th style="min-width:76px;">股數</th>
+              <th style="min-width:76px;">均價</th>
               <th style="text-align:left;min-width:100px;">角色</th>
-              <th style="min-width:40px;">刪除</th>
+              <th style="min-width:36px;">刪</th>
             </tr>
           </thead>
           <tbody id="editTbody"></tbody>
@@ -1908,20 +1908,20 @@ function renderEditTable() {
   tbody.innerHTML = POSITIONS.map((p, i) => `
     <tr id="erow-${i}">
       <td><input value="${p.sym}" onchange="updatePos(${i},'sym',this.value)"
-        style="width:80px;border:1px solid var(--border);border-radius:2px;padding:4px 6px;font-family:'DM Mono',monospace;font-size:0.72rem;text-transform:uppercase;"></td>
+        style="width:68px;border:1px solid var(--border);border-radius:2px;padding:4px 5px;font-family:'DM Mono',monospace;font-size:0.7rem;text-transform:uppercase;"></td>
       <td>
         <select onchange="updatePos(${i},'type',this.value)"
-          style="border:1px solid var(--border);border-radius:2px;padding:4px 5px;font-family:'DM Mono',monospace;font-size:0.7rem;background:white;">
+          style="width:72px;border:1px solid var(--border);border-radius:2px;padding:4px 4px;font-family:'DM Mono',monospace;font-size:0.68rem;background:white;">
           ${TYPE_OPTIONS.map(t=>`<option value="${t}" ${p.type===t?'selected':''}>${t}</option>`).join('')}
         </select>
       </td>
       <td><input type="number" value="${p.shares}" onchange="updatePos(${i},'shares',+this.value)"
-        style="width:90px;border:1px solid var(--border);border-radius:2px;padding:4px 6px;font-family:'DM Mono',monospace;font-size:0.72rem;text-align:right;"></td>
+        style="width:72px;border:1px solid var(--border);border-radius:2px;padding:4px 5px;font-family:'DM Mono',monospace;font-size:0.7rem;text-align:right;"></td>
       <td><input type="number" step="0.0001" value="${p.cost}" onchange="updatePos(${i},'cost',+this.value)"
-        style="width:90px;border:1px solid var(--border);border-radius:2px;padding:4px 6px;font-family:'DM Mono',monospace;font-size:0.72rem;text-align:right;"></td>
+        style="width:72px;border:1px solid var(--border);border-radius:2px;padding:4px 5px;font-family:'DM Mono',monospace;font-size:0.7rem;text-align:right;"></td>
       <td>
         <select onchange="updatePos(${i},'role',this.value)"
-          style="width:130px;border:1px solid var(--border);border-radius:2px;padding:4px 5px;font-family:'DM Mono',monospace;font-size:0.7rem;background:white;">
+          style="width:110px;border:1px solid var(--border);border-radius:2px;padding:4px 4px;font-family:'DM Mono',monospace;font-size:0.68rem;background:white;">
           ${ROLE_OPTIONS.map(r=>`<option value="${r}" ${p.role===r?'selected':''}>${r}</option>`).join('')}
         </select>
       </td>
